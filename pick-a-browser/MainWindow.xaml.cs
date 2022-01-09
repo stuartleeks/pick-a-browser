@@ -1,4 +1,5 @@
-﻿using System;
+﻿using pick_a_browser.Config;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -41,9 +42,4 @@ namespace pick_a_browser
 		}
 	}
 
-
-    public class Config
-    {
-        
-    }
 }

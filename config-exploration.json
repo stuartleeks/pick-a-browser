@@ -1,0 +1,36 @@
+{
+	// "$schema": "TODO"
+	"browsers": [
+		{
+			"name": "test1",
+			"exe": "test1.exe",
+			"args": "arg1 arg2",
+			"iconPath": "blah"
+		},
+		{
+			"name": "test2",
+			"exe": "test2.exe",
+		},
+	],
+	// Future: transformations that are executed in order prior to rules processing
+	// e.g. url shorteners, regex transforms (foo.visualstudio.com => dev.azure.com/foo)
+	"rules": [
+		{
+			"type": "prefix",
+			"prefix": "https://www.example.com/path",
+			"browser": "test1"
+		},
+		{
+			"type": "host",
+			"host": "example.com",
+			"browser": "test1"
+		},
+		// Future - multiple browsers for selection?:
+		// {
+		// 	"type": "prefix",
+		// 	"prefix": "https://www.example.com",
+		// 	"browsers": ["test1", "test2"]
+		// }
+
+	]
+}
