@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace pick_a_browser.Config
@@ -48,15 +49,25 @@ namespace pick_a_browser.Config
                 .NonNulls()
                 .ToList();
 
-
+            var edge = browserList.FirstOrDefault(b => b.Name == "Microsoft Edge");
+            if (edge != null)
+            {
+                browserList.Remove(edge);
+                browserList.Add(new Browser(edge.Name + " - Default", edge.Exe, "--profile-directory=\"Default\"", edge.IconPath));
+                browserList.AddRange(
+                    GetEdgeProfiles()
+                    .Select(profile => new Browser(edge.Name + " - " + profile, edge.Exe, $"--profile-directory=\"{profile}\"", edge.IconPath))
+                );
+            }
 
             return new Browsers(browserList);
         }
+
         private static Browser? BrowserFromRegistry(RegistryKey? browserKey)
         {
             if (browserKey == null)
                 return null;
-            
+
             var exe = (string?)browserKey.OpenSubKey("shell\\open\\command", false)?.GetValue(null);
             if (exe == null)
                 return null;
@@ -77,6 +88,20 @@ namespace pick_a_browser.Config
             }
 
             return new Browser(name, exe, null, iconPath);
+        }
+
+        private static string[] GetEdgeProfiles()
+        {
+            var profilePath = Environment.GetEnvironmentVariable("USERPROFILE");
+
+            var edgeUserDataPath = Path.Join(profilePath, "AppData\\Local\\Microsoft\\Edge\\User Data");
+
+            var profilePrefix = Path.Join(edgeUserDataPath, "Profile ");
+            var profileDirectories = Directory.GetDirectories(edgeUserDataPath)
+                .Where(d => d.StartsWith(profilePrefix))
+                .Select(d => d.Substring(edgeUserDataPath.Length + 1))
+                .ToArray();
+            return profileDirectories;
         }
     }
     public class Browser
