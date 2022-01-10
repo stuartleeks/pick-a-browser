@@ -20,17 +20,11 @@ namespace pick_a_browser
             Console.WriteLine("hi from app");
         }
 
-		private string GetSettingsFilename()
-		{
-			var settingsFilename = Environment.GetEnvironmentVariable("PICK_A_BROWSER_CONFIG");
-			if (!string.IsNullOrEmpty(settingsFilename))
-				return settingsFilename;
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+        private async void Application_Startup(object sender, StartupEventArgs e)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+        {
 
-			var profilePath = Environment.GetEnvironmentVariable("UESRPROFILE");
-			if (string.IsNullOrEmpty(profilePath))
-				throw new Exception("USERPROFILE not set");
-
-			return Path.Join(profilePath, "pick-a-browser-settings.json");
-		}
-	}
+        }
+    }
 }

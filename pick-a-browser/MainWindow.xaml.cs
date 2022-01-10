@@ -25,21 +25,6 @@ namespace pick_a_browser
 		{
 			InitializeComponent();
 		}
-
-
-
-		private string GetSettingsFilename()
-		{
-			var settingsFilename = Environment.GetEnvironmentVariable("PICK_A_BROWSER_CONFIG");
-			if (!string.IsNullOrEmpty(settingsFilename))
-				return settingsFilename;
-
-			var profilePath = Environment.GetEnvironmentVariable("UESRPROFILE");
-			if (string.IsNullOrEmpty(profilePath))
-				throw new Exception("USERPROFILE not set");
-
-			return Path.Join(profilePath, "pick-a-browser-settings.json");
-		}
 	}
 
 }

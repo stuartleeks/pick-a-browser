@@ -3,7 +3,7 @@ using Xunit;
 
 namespace pick_a_browser.tests.Config
 {
-    public class SettingsTests
+    public class SettingsSerializationTests
     {
         [Fact]
         public void ParseBrowsers()
@@ -23,7 +23,7 @@ namespace pick_a_browser.tests.Config
     ]
 }";
 
-            var settings = Settings.ParseSettings(json);
+            var settings = SettingsSerialization.ParseSettings(json);
 
             Assert.NotNull(settings.Browsers);
             Assert.Equal(2, settings.Browsers.Count);
@@ -62,7 +62,7 @@ namespace pick_a_browser.tests.Config
     ]
 }";
 
-            var settings = Settings.ParseSettings(json);
+            var settings = SettingsSerialization.ParseSettings(json);
 
             Assert.NotNull(settings.Rules);
             Assert.Equal(2, settings.Rules.Count);

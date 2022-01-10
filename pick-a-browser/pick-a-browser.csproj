@@ -11,9 +11,17 @@
 
 
   <PropertyGroup>
-		<PublishReadyToRun>true</PublishReadyToRun>
-    <PublishSingleFile>true</PublishSingleFile>
+		<!-- <PublishReadyToRun>true</PublishReadyToRun> -->
+    <!-- <PublishSingleFile>true</PublishSingleFile> -->
     <SelfContained>true</SelfContained>
+    <StartupObject>pick_a_browser.Program</StartupObject>
   </PropertyGroup>
+
+
+  <ItemGroup>
+    <Page Update="BrowserScanWindow.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+    </Page>
+  </ItemGroup>
 
 </Project>
