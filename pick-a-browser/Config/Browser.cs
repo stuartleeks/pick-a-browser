@@ -39,16 +39,8 @@ namespace pick_a_browser.Config
         public static Browsers Scan()
         {
             // Scan registered browsers as per: https://docs.microsoft.com/en-us/windows/win32/shell/start-menu-reg
-            var browsersKey = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Clients\\StartMenuInternet", writable: false);
-
-            if (browsersKey == null)
-                return new Browsers(new List<Browser>());
-
-            var browserList = browsersKey.GetSubKeyNames()
-                .Where(name => name != "pick-a-browser")
-                .Select(name => BrowserFromRegistry(browsersKey.OpenSubKey(name)))
-                .NonNulls()
-                .ToList();
+            List<Browser> browserList = GetBrowsersFor(Registry.CurrentUser);
+            browserList.AddRange(GetBrowsersFor(Registry.LocalMachine));
 
             var edge = browserList.FirstOrDefault(b => b.Name == "Microsoft Edge");
             if (edge != null)
@@ -62,6 +54,20 @@ namespace pick_a_browser.Config
             }
 
             return new Browsers(browserList);
+        }
+
+        private static List<Browser> GetBrowsersFor(RegistryKey root)
+        {
+            var browsersKey = root.OpenSubKey("SOFTWARE\\Clients\\StartMenuInternet", writable: false);
+            
+            if (browsersKey == null)
+                return new List<Browser>();
+
+            return browsersKey.GetSubKeyNames()
+                .Where(name => name != "pick-a-browser")
+                .Select(name => BrowserFromRegistry(browsersKey.OpenSubKey(name)))
+                .NonNulls()
+                .ToList();
         }
 
         private static Browser? BrowserFromRegistry(RegistryKey? browserKey)

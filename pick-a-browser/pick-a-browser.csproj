@@ -14,7 +14,7 @@
 		<!-- <PublishReadyToRun>true</PublishReadyToRun> -->
     <!-- <PublishSingleFile>true</PublishSingleFile> -->
     <SelfContained>true</SelfContained>
-    <StartupObject>pick_a_browser.Program</StartupObject>
+    <StartupObject>pick_a_browser.App</StartupObject>
   </PropertyGroup>
 
 

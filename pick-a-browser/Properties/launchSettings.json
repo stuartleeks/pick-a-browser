@@ -6,6 +6,10 @@
     },
     "pick-a-browser": {
       "commandName": "Project"
+    },
+    "uninstall": {
+      "commandName": "Project",
+      "commandLineArgs": "--uninstall"
     }
   }
 }

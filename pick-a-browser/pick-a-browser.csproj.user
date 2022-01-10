@@ -4,7 +4,7 @@
     <DebuggerFlavor>ProjectDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup>
-    <ActiveDebugProfile>pick-a-browser</ActiveDebugProfile>
+    <ActiveDebugProfile>uninstall</ActiveDebugProfile>
   </PropertyGroup>
   <ItemGroup>
     <Page Update="BrowserScanWindow.xaml">
