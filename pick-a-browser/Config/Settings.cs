@@ -28,7 +28,7 @@ namespace pick_a_browser.Config
 
         // TODO - add tranformation rules (link shorteners, regex rules)
         // TODO - add browser matches (simple, prefix, regex)
-        public static async Task<Settings> LoadAsync(string filename)
+        public static async Task<Settings> LoadAsync()
         {
             return await SettingsSerialization.LoadFromFileAsync(GetSettingsFilename());
         }

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace pick_a_browser
@@ -12,13 +13,8 @@ namespace pick_a_browser
         /// <summary>
         /// Application Entry Point.
         /// </summary>
-        [STAThread]
-        //public static async Task<int> Main(string[] args)
-        public static int Main(string[] args)
+        public static async Task Main(string[] args)
         {
-            App app = new App();
-            app.InitializeComponent();
-
             if (args.Length > 0
                 && args[0].Length >= 2
                 && args[0].StartsWith("--"))
@@ -26,14 +22,41 @@ namespace pick_a_browser
                 switch (args[0])
                 {
                     case "--browser-scan":
-
-                        var browsers = Browsers.Scan();
-                        var window = new BrowserScanWindow(browsers);
-                        return app.Run(window);
+                        RunWpfApp(() =>
+                        {
+                            App app = new App();
+                            app.InitializeComponent();
+                            var scannedBrowsers = Browsers.Scan();
+                            var window = new BrowserScanWindow(scannedBrowsers);
+                            app.Run(window);
+                        });
+                        return;
                 }
             }
 
-            return app.Run(new MainWindow());
+            var settings = await Settings.LoadAsync();
+
+            var browsers = settings.Browsers.ToList();
+            var url = "https://wsl.tips/";
+
+            RunWpfApp(() =>
+            {
+                App app = new App();
+                app.InitializeComponent();
+                var model = new PickABrowserViewModel(browsers, url);
+                var window = new PickABrowserWindow(model);
+                app.Run(window);
+            });
+        }
+
+        private static void RunWpfApp(ThreadStart action)
+        {
+            // https://github.com/dotnet/roslyn/issues/37122
+            var thread = new Thread(action);
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+            return;
         }
     }
 }

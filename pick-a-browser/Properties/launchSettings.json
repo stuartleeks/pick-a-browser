@@ -1,8 +1,11 @@
 {
   "profiles": {
-    "pick-a-browser": {
+    "pick-a-browser  --browser-scan": {
       "commandName": "Project",
       "commandLineArgs": "--browser-scan"
+    },
+    "pick-a-browser": {
+      "commandName": "Project"
     }
   }
 }
