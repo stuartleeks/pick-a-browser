@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -117,6 +118,12 @@ namespace pick_a_browser.Config
         public string Exe { get; }
         public string? Args { get; }
         public string? IconPath { get; }
+
+        public void Launch(string url)
+        {
+            var args = Args == null ? url : $"{Args} {url}";
+            Process.Start(Exe, args);
+        }
     }
 
 }

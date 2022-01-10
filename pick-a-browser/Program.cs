@@ -61,6 +61,12 @@ namespace pick_a_browser
                 }
             }
 
+            if (browsers.Count == 1)
+            {
+                browsers[0].Launch(url);
+                return;
+            }
+
             RunWpfApp(() =>
             {
                 App app = new App();

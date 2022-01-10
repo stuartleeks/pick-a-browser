@@ -119,8 +119,8 @@ namespace pick_a_browser
 
         public DelegateCommand<object?> Launch => new DelegateCommand<object?>(foo =>
         {
-            var args = _browser.Args == null ? _url : $"{_browser.Args} {_url}";
-            Process.Start(_browser.Exe, args);
+            _browser.Launch(_url);
+            Application.Current.Shutdown();
         });
     }
 
