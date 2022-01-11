@@ -4,13 +4,33 @@ namespace pick_a_browser.Config
 {
     public abstract class Rule
     {
+        public const string BrowserPrompt = "_prompt_";
+
+        protected Rule(string browserId)
+        {
+            BrowserId = browserId;
+        }
+        public string BrowserId { get; }
+
 
         /// <summary>
         /// Test whether the rule matches the specified Uri
         /// </summary>
         /// <param name="uri"></param>
         /// <returns></returns>
-        public abstract RuleMatch GetMatch(Uri uri);
+        public RuleMatch GetMatch(Uri uri)
+        {
+            var weight = GetMatchWeight(uri);
+
+            if (weight == 0)
+                return RuleMatch.None;
+
+            if (BrowserId == BrowserPrompt)
+                weight = int.MaxValue;
+
+            return new RuleMatch(weight, BrowserId);
+        }
+        protected abstract int GetMatchWeight(Uri uri);
     }
 
     /// <summary>
@@ -18,21 +38,20 @@ namespace pick_a_browser.Config
     /// </summary>
     public class PrefixRule : Rule
     {
-        public PrefixRule(string prefixMatch, string browser)
+        public PrefixRule(string prefixMatch, string browserId)
+            : base(browserId)
         {
             PrefixMatch = prefixMatch.ToLowerInvariant();
-            Browser = browser;
         }
 
         public string PrefixMatch { get; }
-        public string Browser { get; }
 
-        public override RuleMatch GetMatch(Uri uri)
+        protected override int GetMatchWeight(Uri uri)
         {
             if (uri.ToString().ToLowerInvariant().StartsWith(PrefixMatch))
-                return new RuleMatch(PrefixMatch.Length, Browser); // use prefix length as the weighting
+                return PrefixMatch.Length; // use prefix length as the weighting
             else
-                return RuleMatch.None;
+                return 0;
         }
     }
 
@@ -41,21 +60,20 @@ namespace pick_a_browser.Config
     /// </summary>
     public class HostRule : Rule
     {
-        public HostRule(string host, string browser)
+        public HostRule(string host, string browserId)
+            : base(browserId)
         {
             Host = host.ToLowerInvariant();
-            Browser = browser;
         }
 
         public string Host { get; }
-        public string Browser { get; }
 
-        public override RuleMatch GetMatch(Uri uri)
+        protected override int GetMatchWeight(Uri uri)
         {
             if (uri.Host.ToLowerInvariant().EndsWith(Host))
-                return new RuleMatch(Host.Length, Browser);
+                return Host.Length;
             else
-                return RuleMatch.None;
+                return 0;
         }
     }
 

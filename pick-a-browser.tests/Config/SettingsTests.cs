@@ -77,12 +77,12 @@ namespace pick_a_browser.tests.Config
             var prefixRule = settings.Rules[0] as PrefixRule;
             Assert.NotNull(prefixRule);
             Assert.Equal("https://example.com", prefixRule!.PrefixMatch);
-            Assert.Equal("browser1", prefixRule.Browser);
+            Assert.Equal("browser1", prefixRule.BrowserId);
 
             var hostRule = settings.Rules[1] as HostRule;
             Assert.NotNull(hostRule);
             Assert.Equal("example.com", hostRule!.Host);
-            Assert.Equal("browser2", hostRule.Browser);
+            Assert.Equal("browser2", hostRule.BrowserId);
         }
 
 
