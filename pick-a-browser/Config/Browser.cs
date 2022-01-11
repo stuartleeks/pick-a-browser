@@ -56,15 +56,13 @@ namespace pick_a_browser.Config
             }
 
             try {
-                // If we have existing settings, preserve the browser Id, Name, IconPath values
+                // If we have existing settings, add new browsers at the end
                 var existingSettings = await Settings.LoadAsync();
-                var tmpList = new List<Browser>();
+                var tmpList = existingSettings.Browsers.ToList();
                 foreach (var browser in browserList)
                 {
                     var existingBrowser = existingSettings.Browsers.FirstOrDefault(b=>b.Exe == browser.Exe && b.Args == browser.Args);
-                    if (existingBrowser == null)
-                        tmpList.Add(browser);
-                    else
+                    if (existingBrowser != null)
                         tmpList.Add(existingBrowser);
                 }
 
