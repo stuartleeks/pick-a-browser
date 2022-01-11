@@ -103,6 +103,26 @@ namespace pick_a_browser
         }
     }
 
+    public class DesignTimePickABrowserViewModel : PickABrowserViewModel
+    {
+        public DesignTimePickABrowserViewModel()
+            : base(GetBrowsers(), "https://example.com/some/path")
+        {
+
+        }
+
+        private static List<Browser> GetBrowsers()
+        {
+            return new List<Browser>
+            {
+                new Browser("test1", "Browser number one", "", null, null, false),
+                new Browser("test2", "Browser number two", "", null, null, false),
+                new Browser("test3", "Browser number three", "", null, null, false),
+                new Browser("test4", "Browser number four", "", null, null, false),
+            };
+        }
+    }
+
     public class BrowserViewModel
     {
         private readonly Browser _browser;
