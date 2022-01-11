@@ -8,6 +8,7 @@
         mc:Ignorable="d"
         Title="Choose browser..." Height="Auto" Width="400" Topmost="True"
         SizeToContent="Height"
+        WindowStartupLocation="CenterScreen"
         KeyDown="Window_KeyDown">
 
     <Grid Background="#FFFFFFFF">

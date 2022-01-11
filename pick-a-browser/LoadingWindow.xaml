@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:pick_a_browser"
         d:DataContext="{d:DesignInstance Type=local:DesignTimeLoadingViewModel, IsDesignTimeCreatable=True}"
         mc:Ignorable="d"
+        WindowStartupLocation="CenterScreen"
         Title="Processing URL..." Height="Auto" Width="400" Topmost="True">
     <Grid>
         <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Stretch" Margin="5 10 5 10" >
