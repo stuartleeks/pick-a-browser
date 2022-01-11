@@ -10,8 +10,12 @@ namespace pick_a_browser.Config
             var value = node[name];
             if (value == null)
                 throw new Exception($"Property '{name}' not found");
-            else
-                return (string)value;
+
+            var stringValue = (string?)value;
+            if (stringValue == null)
+                throw new Exception($"Property '{name}' is null");
+
+            return stringValue;
         }
         public static string? GetOptionalString(this JsonNode node, string name)
         {
@@ -19,7 +23,7 @@ namespace pick_a_browser.Config
             if (value == null)
                 return null;
             else
-                return (string)value;
+                return (string?)value;
 
         }
 
