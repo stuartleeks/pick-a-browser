@@ -10,10 +10,10 @@ As a result, I created `pick-a-browser` as a way to address this (and to tweak b
 
 ## Installing
 
-- Get the binaries
-- Install `pick-a-browser` as a browser
-- Create `pick-a-browser-settings.json`
-- Set `pick-a-browser` as your default browser - https://support.microsoft.com/en-gb/windows/change-your-default-browser-in-windows-10-020c58c6-7d77-797a-b74e-8f07946c5db6
+-   Get the binaries
+-   Install `pick-a-browser` as a browser
+-   Create `pick-a-browser-settings.json`
+-   Set `pick-a-browser` as your default browser - <https://support.microsoft.com/en-gb/windows/change-your-default-browser-in-windows-10-020c58c6-7d77-797a-b74e-8f07946c5db6>
 
 ### Get the binaries
 
@@ -25,16 +25,124 @@ To install `pick-a-browser`, run `pick-a-browser --install` (needs elevated perm
 
 ### Create settings file
 
+See [Configuration](#configuration) below.
+
+## Configuration
+
 By default, `pick-a-browser` will look for `pick-a-browser-settings.json` in your user profile folder and then in the same folder as the app itself.
 
 If you which to put the settings in a different location, set the `PICK_A_BROWSER_CONFIG` environment variable to the full path to the settings file.
 
-For details on configuring browsers/rules, see the [Configuration](#configuration) section. You can run `pick-a-browser --browser-scan` to generate the initial `browsers` section of the configuration.
+### Browsers
 
-## Configuration
+The top-level `browsers` property allows you to configure browsers (or browser profiles) that `pick-a-browser` should use.
 
-TODO
-- configuring browsers
-- configuring rules
-- specifying settings file location
+You can run `pick-a-browser --browser-scan` to generate the initial `browsers` section of the configuration and then copy and paste this into the config file.
 
+The `browsers` property is an array of objects with the following properties:
+
+| Name     | Type              | Description                                                                  |
+| -------- | ----------------- | ---------------------------------------------------------------------------- |
+| id       | string (required) | The id to use to identify the browser - used to refer to browsers in rules   |
+| name     | string (required) | The name to display in the browser picker UI                                 |
+| exe      | string (required) | The path to the app to launch for the browser                                |
+| args     | string (optional) | Any arguments to pass to the browser. Useful for specifying browser profiles |
+| iconPath | string (optional) | not currently used                                                           |
+| hidden   | bool (optional)   | When no rules are matched, the UI displays a list of all non-hidden browsers |
+
+### Rules
+
+The top-level `rules` property allows you to define rules to configure a browser to be automatically launched for certain URLs.
+
+The `browsers` property is an array of objects that match one of the following rule types.
+
+#### URL Prefix Match
+
+Performs a prefix match against the full URL.
+
+| Name    | Type              | Description                       |
+| ------- | ----------------- | --------------------------------- |
+| type    | string (required) | `prefix`                          |
+| prefix  | string (required) | The prefix to match               |
+| browser | string (required) | The `id` of the browser to launch |
+
+e.g.
+
+```json
+{
+	"type": "prefix",
+	"prefix": "https://dev.azure.com/myorg",
+	"browser": "work"
+}
+```
+
+#### Host Suffix Match
+
+Perfoms a suffix match against the host portion of the URL. Handy for matching.
+
+E.g. `www.github.com` and `github.com` would both match a rule of `github.com`.
+
+| Name    | Type              | Description                       |
+| ------- | ----------------- | --------------------------------- |
+| type    | string (required) | `host`                            |
+| host    | string (required) | The host suffix to match          |
+| browser | string (required) | The `id` of the browser to launch |
+
+e.g.
+
+```json
+{
+	"type": "host",
+	"prefix": "https://dev.azure.com/myorg",
+	"browser": "work"
+}
+```
+
+### Example configuration
+
+```jsonc
+{
+	"browsers": [
+		{
+			"id": "iexplore",
+			"name": "Internet Explorer",
+			"exe": "C:\\Program Files\\Internet Explorer\\iexplore.exe",
+			"iconPath": "C:\\Program Files\\Internet Explorer\\iexplore.exe",
+			"hidden": true
+		},
+		{
+			"id": "work",
+			"name": "Microsoft Edge - Work",
+			"exe": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+			"args": "--profile-directory=\u0022Default\u0022",
+			"iconPath": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+			"hidden": false
+		},
+		{
+			"id": "personal",
+			"name": "Microsoft Edge - stuart@leeks.net (MSA)",
+			"exe": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+			"args": "--profile-directory=\u0022Profile 1\u0022",
+			"iconPath": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+			"hidden": false
+		}
+	],
+	"rules": [
+		{
+			"type": "prefix",
+			"prefix": "https://dev.azure.com/myorg",
+			"browser": "work"
+		},
+		{
+			"type": "host",
+			"host": "github.com",
+			"browser": "work"
+		},
+		{
+			"type": "host",
+			"host": "whatsapp.com",
+			"browser": "personal"
+		}
+	]
+}
+```
