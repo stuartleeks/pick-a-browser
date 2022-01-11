@@ -67,7 +67,7 @@ namespace pick_a_browser.Config
             }
         }
 
-        public static Browsers ParseBrowsers(JsonNode? rootNode)
+        public static Browsers ParseBrowsers(JsonNode rootNode)
         {
             var browsersNode = rootNode["browsers"];
             if (browsersNode == null)
