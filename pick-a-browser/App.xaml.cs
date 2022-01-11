@@ -6,8 +6,11 @@ using System.Configuration;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using System.Windows;
 
 namespace pick_a_browser
@@ -45,7 +48,7 @@ namespace pick_a_browser
                     }
                 }
 
-                await RunPickABrowser(args);
+                await RunPickABrowserAsync(args);
             }
             catch (Exception ex)
             {
@@ -176,37 +179,39 @@ namespace pick_a_browser
             MessageBox.Show("pick-a-browser uninstalled");
         }
 
-        private static async Task RunPickABrowser(string[] args)
+        private static async Task RunPickABrowserAsync(string[] args)
         {
             var settings = await Settings.LoadAsync();
 
-            var browsers = settings.Browsers.ToList();
             var url = args.Length > 0 ? args[0] : "";
+            var loadingViewModel = new LoadingViewModel { Url = url };
 
-            if (url == "")
+            var cts = new CancellationTokenSource();
+            var loadingTask = ShowLoadingAsync(loadingViewModel, cts.Token);
+            url = await UnwrapLinkAsync(url, u => loadingViewModel.Url = u, cts.Token);
+            cts.Cancel();
+
+            // Get matches with highest weights (handle multiple matches with the same weight)
+            var uri = new Uri(url);
+            var matchedBrowserIds = settings.Rules
+                    .Select(r => r.GetMatch(uri))
+                    .Where(m => m.Weight > 0)
+                    .GroupBy(m => m.Weight)
+                    .OrderByDescending(g => g.Key)
+                    // Take the top weighted match(es)
+                    ?.FirstOrDefault()
+                    // Get browsers
+                    ?.Select(m => m.BrowserId)
+                    ?.Distinct();
+
+            List<Browser>? browsers;
+            if (matchedBrowserIds == null)
             {
-                browsers = browsers.Where(b => !b.Hidden).ToList();
+                browsers = settings.Browsers.Where(b => !b.Hidden).ToList();
             }
             else
             {
-                var uri = new Uri(url);
-
-                // Get matches with highest weights (handle multiple matches with the same weight)
-                var matchedBrowserIds = settings.Rules
-                        .Select(r => r.GetMatch(uri))
-                        .Where(m => m.Weight > 0)
-                        .GroupBy(m => m.Weight)
-                        .OrderByDescending(g => g.Key)
-                        // Take the top weighted match(es)
-                        ?.FirstOrDefault()
-                        // Get browsers
-                        ?.Select(m => m.BrowserId)
-                        ?.Distinct();
-
-                if (matchedBrowserIds != null)
-                {
-                    browsers = browsers.Where(b => matchedBrowserIds.Contains(b.Id)).ToList();
-                }
+                browsers = settings.Browsers.Where(b => matchedBrowserIds.Contains(b.Id)).ToList();
             }
 
             if (browsers.Count == 1)
@@ -219,6 +224,79 @@ namespace pick_a_browser
             var window = new PickABrowserWindow(model);
             window.Show();
         }
+
+        private static async Task ShowLoadingAsync(LoadingViewModel viewModel, CancellationToken cancellationToken)
+        {
+            await Task.Delay(300); // TODO add to config?
+
+            if (cancellationToken.IsCancellationRequested)
+                return;
+
+            var window = new LoadingWindow(viewModel);
+
+            // Hide when cancelled
+            cancellationToken.Register(() => window.Hide());
+
+            window.Show(); // TODO - allow cancelling from the LoadingWindow?
+        }
+
+        private static async Task<string> UnwrapLinkAsync(string url, Action<string> urlUpdated, CancellationToken cancellationToken)
+        {
+            var result = url;
+            var client = new HttpClient();
+
+            while (true)
+            {
+                var uri = new Uri(result);
+                var shortener = linkShorteners.FirstOrDefault(s => uri.Host == s);
+                if (shortener != null)
+                {
+                    var response = await client.GetAsync(uri, cancellationToken);
+                    var newUrl = response.Headers.Location?.OriginalString;
+                    if (newUrl == null)
+                    {
+                        // Can't process any further
+                        return result;
+                    }
+                    result = newUrl;
+                    continue;
+                }
+
+                var wrapper = linkWrappers.FirstOrDefault(s => result.StartsWith(uri.AbsoluteUri));
+                if (wrapper != null)
+                {
+                    var query = HttpUtility.ParseQueryString(uri.Query);
+                    var queryValue = query[wrapper.QueryStringKey];
+                    if (queryValue == null)
+                    {
+                        // Can't process any further
+                        return result;
+                    }
+                    result = queryValue;
+                    continue;
+                }
+
+                break; // didn't match shortener or wrappers
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// linkShorteners require a GET request which returns a redirect resopnse with Location header for the wrapped URL
+        /// </summary>
+        private static readonly string[] linkShorteners = // TODO - allow adding via config
+        {
+            "aka.ms",
+            "t.co",
+            "go.microsoft.com",
+        };
+
+        /// <summary>
+        /// linkWrappers contain the target URL in a query string value
+        /// </summary>
+        private static readonly LinkWrapper[] linkWrappers = {
+            new LinkWrapper("https://staticsint.teams.cdn.office.net/evergreen-assets/safelinks/", "url"),
+        };
 
     }
 }
