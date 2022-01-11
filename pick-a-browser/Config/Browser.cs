@@ -5,11 +5,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Threading.Tasks;
 
 namespace pick_a_browser.Config
 {
     /// <summary>
-    /// Represents a readonly list of Browser instances allowing for indexed access on the Name property
+    /// Represents a readonly list of Browser instances allowing for indexed access on the Id property
     /// </summary>
     public class Browsers : IEnumerable<Browser>, IReadOnlyList<Browser>
     {
@@ -22,7 +24,7 @@ namespace pick_a_browser.Config
         }
 
         public Browser this[int index] => _browsers[index];
-        public Browser this[string name] => _browsers.First(b => b.Name == name);
+        public Browser this[string id] => _browsers.First(b => b.Id== id);
 
         public int Count => _browsers.Count;
 
@@ -36,7 +38,7 @@ namespace pick_a_browser.Config
             return GetEnumerator();
         }
 
-        public static Browsers Scan()
+        public static async Task<Browsers> Scan()
         {
             // Scan registered browsers as per: https://docs.microsoft.com/en-us/windows/win32/shell/start-menu-reg
             List<Browser> browserList = GetBrowsersFor(Registry.CurrentUser);
@@ -46,12 +48,29 @@ namespace pick_a_browser.Config
             if (edge != null)
             {
                 browserList.Remove(edge);
-                browserList.Add(new Browser(edge.Name + " - Default", edge.Exe, "--profile-directory=\"Default\"", edge.IconPath));
+                browserList.Add(new Browser(Guid.NewGuid().ToString(), edge.Name + " - Default", edge.Exe, "--profile-directory=\"Default\"", edge.IconPath, false));
                 browserList.AddRange(
                     GetEdgeProfiles()
-                    .Select(profile => new Browser(edge.Name + " - " + profile, edge.Exe, $"--profile-directory=\"{profile}\"", edge.IconPath))
+                    .Select(profile => new Browser(Guid.NewGuid().ToString(), edge.Name + " - " + profile, edge.Exe, $"--profile-directory=\"{profile}\"", edge.IconPath, false))
                 );
             }
+
+            try {
+                // If we have existing settings, preserve the browser Id, Name, IconPath values
+                var existingSettings = await Settings.LoadAsync();
+                var tmpList = new List<Browser>();
+                foreach (var browser in browserList)
+                {
+                    var existingBrowser = existingSettings.Browsers.FirstOrDefault(b=>b.Exe == browser.Exe && b.Args == browser.Args);
+                    if (existingBrowser == null)
+                        tmpList.Add(browser);
+                    else
+                        tmpList.Add(existingBrowser);
+                }
+
+                browserList = tmpList;
+            }
+            catch { }
 
             return new Browsers(browserList);
         }
@@ -94,7 +113,7 @@ namespace pick_a_browser.Config
                 }
             }
 
-            return new Browser(name, exe, null, iconPath);
+            return new Browser(Guid.NewGuid().ToString(), name, exe, null, iconPath, false);
         }
 
         private static string[] GetEdgeProfiles()
@@ -113,17 +132,21 @@ namespace pick_a_browser.Config
     }
     public class Browser
     {
-        public Browser(string name, string exe, string? args, string? iconPath)
+        public Browser(string id, string name, string exe, string? args, string? iconPath, bool hidden)
         {
+            Id = id;
             Name = name;
             Exe = exe;
             Args = args;
             IconPath = iconPath;
+            Hidden = hidden;
         }
+        public string Id { get; }
         public string Name { get; }
         public string Exe { get; }
         public string? Args { get; }
         public string? IconPath { get; }
+        public bool Hidden { get; set; }
 
         public void Launch(string url)
         {

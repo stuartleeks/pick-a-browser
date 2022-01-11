@@ -30,7 +30,7 @@ namespace pick_a_browser
                     switch (args[0])
                     {
                         case "--browser-scan":
-                            RunBrowserScan();
+                            await RunBrowserScanAsync();
                             return;
 
                         case "--install":
@@ -54,9 +54,9 @@ namespace pick_a_browser
             }
         }
 
-        private static void RunBrowserScan()
+        private static async Task RunBrowserScanAsync()
         {
-            var scannedBrowsers = Browsers.Scan();
+            var scannedBrowsers = await Browsers.Scan();
             var window = new BrowserScanWindow(scannedBrowsers);
             window.Show();
         }
@@ -183,12 +183,16 @@ namespace pick_a_browser
             var browsers = settings.Browsers.ToList();
             var url = args.Length > 0 ? args[0] : "";
 
-            if (url != "")
+            if (url == "")
+            {
+                browsers = browsers.Where(b => !b.Hidden).ToList();
+            }
+            else
             {
                 var uri = new Uri(url);
 
                 // Get matches with highest weights (handle multiple matches with the same weight)
-                var matchedBrowserNames = settings.Rules
+                var matchedBrowserIds = settings.Rules
                         .Select(r => r.GetMatch(uri))
                         .Where(m => m.Weight > 0)
                         .GroupBy(m => m.Weight)
@@ -196,12 +200,12 @@ namespace pick_a_browser
                         // Take the top weighted match(es)
                         ?.FirstOrDefault()
                         // Get browsers
-                        ?.Select(m => m.BrowserName)
+                        ?.Select(m => m.BrowserId)
                         ?.Distinct();
 
-                if (matchedBrowserNames != null)
+                if (matchedBrowserIds != null)
                 {
-                    browsers = browsers.Where(b => matchedBrowserNames.Contains(b.Name)).ToList();
+                    browsers = browsers.Where(b => matchedBrowserIds.Contains(b.Id)).ToList();
                 }
             }
 

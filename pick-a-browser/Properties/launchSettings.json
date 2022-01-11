@@ -5,7 +5,8 @@
       "commandLineArgs": "--browser-scan"
     },
     "pick-a-browser": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "https://foo.com"
     },
     "uninstall": {
       "commandName": "Project",

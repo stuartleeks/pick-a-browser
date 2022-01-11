@@ -94,22 +94,26 @@ namespace pick_a_browser.Config
             if (browserNode == null)
                 throw new Exception("browser array item was null");
 
+            var id= browserNode.GetRequiredString("id");
             var name = browserNode.GetRequiredString("name");
             var exe = browserNode.GetRequiredString("exe");
             var args = browserNode.GetOptionalString("args");
             var iconPath = browserNode.GetOptionalString("iconPath");
+            var hidden = (bool?)browserNode["hidden"] ?? false;
 
-            return new Browser(name, exe, args, iconPath);
+            return new Browser(id, name, exe, args, iconPath, hidden);
         }
         public static JsonNode ToJsonNode(Browser browser)
         {
             var node = new JsonObject();
+            node.Add("id", browser.Id);
             node.Add("name", browser.Name);
             node.Add("exe", browser.Exe);
             if (browser.Args != null)
                 node.Add("args", browser.Args);
             if (browser.IconPath != null)
                 node.Add("iconPath", browser.IconPath);
+            node.Add("hidden", browser.Hidden);
             return node;
         }
 
