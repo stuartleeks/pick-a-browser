@@ -79,8 +79,8 @@ namespace pick_a_browser
                 return;
             }
 
-            var exePath = Assembly.GetExecutingAssembly().Location;
-            exePath = exePath.Replace(".dll", ".exe");
+            // TODO - look at handling renamed exe file
+            var exePath = Path.Join(AppContext.BaseDirectory, "pick-a-browser.exe");  // Can't use Assembly.GetExecutingAssembly().Location in Single File App
 
             pickABrowserKey = browsersKey.CreateSubKey("pick-a-browser", writable: true);
             pickABrowserKey.SetValue(null, "Pick A Browser");
