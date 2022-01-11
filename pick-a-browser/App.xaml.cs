@@ -202,10 +202,11 @@ namespace pick_a_browser
                     ?.FirstOrDefault()
                     // Get browsers
                     ?.Select(m => m.BrowserId)
-                    ?.Distinct();
+                    ?.Distinct()
+                    .ToList();
 
             List<Browser>? browsers;
-            if (matchedBrowserIds == null)
+            if (matchedBrowserIds == null || matchedBrowserIds.Count == 0 || matchedBrowserIds[0] == "_prompt_")
             {
                 browsers = settings.Browsers.Where(b => !b.Hidden).ToList();
             }

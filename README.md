@@ -97,15 +97,17 @@ The top-level `rules` property allows you to define rules to configure a browser
 
 The `browsers` property is an array of objects that match one of the following rule types.
 
+Each rule configuration specifies a `browser` property that contains the `id` of the browser to launch if matched. This can also be `_prompt_` to force the list of browsers to be displayed.
+
 #### URL Prefix Match
 
 Performs a prefix match against the full URL.
 
-| Name    | Type              | Description                       |
-| ------- | ----------------- | --------------------------------- |
-| type    | string (required) | `prefix`                          |
-| prefix  | string (required) | The prefix to match               |
-| browser | string (required) | The `id` of the browser to launch |
+| Name    | Type              | Description                                                              |
+| ------- | ----------------- | ------------------------------------------------------------------------ |
+| type    | string (required) | `prefix`                                                                 |
+| prefix  | string (required) | The prefix to match                                                      |
+| browser | string (required) | The `id` of the browser to launch or `_prompt_` to display the full list |
 
 e.g.
 
@@ -123,11 +125,11 @@ Perfoms a suffix match against the host portion of the URL. Handy for matching.
 
 E.g. `www.github.com` and `github.com` would both match a rule of `github.com`.
 
-| Name    | Type              | Description                       |
-| ------- | ----------------- | --------------------------------- |
-| type    | string (required) | `host`                            |
-| host    | string (required) | The host suffix to match          |
-| browser | string (required) | The `id` of the browser to launch |
+| Name    | Type              | Description                                                              |
+| ------- | ----------------- | ------------------------------------------------------------------------ |
+| type    | string (required) | `host`                                                                   |
+| host    | string (required) | The host suffix to match                                                 |
+| browser | string (required) | The `id` of the browser to launch or `_prompt_` to display the full list |
 
 e.g.
 
