@@ -6,7 +6,7 @@
     },
     "pick-a-browser": {
       "commandName": "Project",
-      "commandLineArgs": "https://foo.com"
+      "commandLineArgs": "https://aka.ms/msw"
     },
     "uninstall": {
       "commandName": "Project",

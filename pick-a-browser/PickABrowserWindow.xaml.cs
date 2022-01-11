@@ -69,9 +69,10 @@ namespace pick_a_browser
     }
     public class PickABrowserViewModel : ViewModel
     {
-        public PickABrowserViewModel(List<Browser> browsers, string url)
+        public PickABrowserViewModel(List<Browser> browsers, string originalUrl, string url)
         {
             _browsers = browsers.Select(b => new BrowserViewModel(b, url)).ToList();
+            _originalUrl = originalUrl;
             _url = url;
         }
 
@@ -82,6 +83,13 @@ namespace pick_a_browser
             set { _browsers = value; FirePropertyChanged(); }
         }
 
+
+        private string _originalUrl;
+        public string OriginalUrl
+        {
+            get { return _originalUrl; }
+            set { _originalUrl = value; FirePropertyChanged(); }
+        }
 
         private string _url;
         public string Url
@@ -94,9 +102,8 @@ namespace pick_a_browser
     public class DesignTimePickABrowserViewModel : PickABrowserViewModel
     {
         public DesignTimePickABrowserViewModel()
-            : base(GetBrowsers(), "https://example.com/some/path")
+            : base(GetBrowsers(), "https://aka.ms/example", "https://example.com/some/path")
         {
-
         }
 
         private static List<Browser> GetBrowsers()

@@ -24,47 +24,10 @@ namespace pick_a_browser.Config
                 throw new Exception("Failed to parse settings");
 
             var browsers = ParseBrowsers(rootNode);
-
+            var transformations = ParseTransformations(rootNode);
             var rules = ParseRules(rootNode);
 
-            return new Settings(browsers, rules);
-        }
-
-        public static List<Rule> ParseRules(JsonNode rootNode)
-        {
-            var rules = new List<Rule>();
-            var rulesNode = rootNode["rules"];
-            if (rulesNode == null)
-                return rules;
-
-            foreach (var ruleNode in rulesNode.AsArray())
-            {
-                var rule = ParseRule(ruleNode);
-                rules.Add(rule);
-            }
-
-            return rules;
-        }
-
-        public static Rule ParseRule(JsonNode? ruleNode)
-        {
-            if (ruleNode == null)
-                throw new Exception("rule array item was null");
-
-            var type = ruleNode.GetRequiredString("type");
-
-            var browser = ruleNode.GetRequiredString("browser");
-            switch (type.ToLowerInvariant())
-            {
-                case "prefix":
-                    var prefixMatch = ruleNode.GetRequiredString("prefix");
-                    return new PrefixRule(prefixMatch, browser);
-                case "host":
-                    var host = ruleNode.GetRequiredString("host");
-                    return new HostRule(host, browser);
-                default:
-                    throw new Exception($"Unsupported rule type: '{type}'");
-            }
+            return new Settings(browsers, transformations, rules);
         }
 
         public static Browsers ParseBrowsers(JsonNode rootNode)
@@ -115,6 +78,98 @@ namespace pick_a_browser.Config
                 node.Add("iconPath", browser.IconPath);
             node.Add("hidden", browser.Hidden);
             return node;
+        }
+        public static List<Rule> ParseRules(JsonNode rootNode)
+        {
+            var rules = new List<Rule>();
+            var rulesNode = rootNode["rules"];
+            if (rulesNode == null)
+                return rules;
+
+            foreach (var ruleNode in rulesNode.AsArray())
+            {
+                var rule = ParseRule(ruleNode);
+                rules.Add(rule);
+            }
+
+            return rules;
+        }
+
+        public static Rule ParseRule(JsonNode? ruleNode)
+        {
+            if (ruleNode == null)
+                throw new Exception("rule array item was null");
+
+            var type = ruleNode.GetRequiredString("type");
+
+            var browser = ruleNode.GetRequiredString("browser");
+            switch (type.ToLowerInvariant())
+            {
+                case "prefix":
+                    var prefixMatch = ruleNode.GetRequiredString("prefix");
+                    return new PrefixRule(prefixMatch, browser);
+                case "host":
+                    var host = ruleNode.GetRequiredString("host");
+                    return new HostRule(host, browser);
+                default:
+                    throw new Exception($"Unsupported rule type: '{type}'");
+            }
+        }
+
+        public static Transformations ParseTransformations(JsonNode rootNode)
+        {
+            var transformationsNode = rootNode["transformations"];
+            if (transformationsNode == null)
+                return new Transformations(new List<string>(), new List<LinkWrapper>());
+
+            var linkShorteners = ParseLinkShorteners(transformationsNode);
+            var linkWrappers= ParseLinkWrappers(transformationsNode);
+
+            return new Transformations(linkShorteners, linkWrappers);
+        }
+        public static List<string> ParseLinkShorteners(JsonNode transformationsNode)
+        {
+            var shorteners = new List<string>();
+            var shortenersNode = transformationsNode["linkShorteners"];
+            if (shortenersNode == null)
+                return shorteners;
+
+            foreach (var shortenerNode in shortenersNode.AsArray())
+            {
+                var shortener = (string?)shortenerNode;
+                if (string.IsNullOrEmpty(shortener))
+                {
+                    throw new Exception("linkShorteners must not be null or empty");
+                }
+                shorteners.Add(shortener);
+            }
+
+            return shorteners;
+        }
+        public static List<LinkWrapper> ParseLinkWrappers(JsonNode transformationsNode)
+        {
+            var linkWrappersNode = transformationsNode["linkWrappers"];
+            if (linkWrappersNode == null)
+                return new List<LinkWrapper>();
+
+            var linkWrappers = new List<LinkWrapper>();
+            foreach (var linkWrapperNode in linkWrappersNode.AsArray())
+            {
+                var linkWrapper = ParseLinkWrapper(linkWrapperNode);
+                linkWrappers.Add(linkWrapper);
+            }
+
+            return linkWrappers;
+        }
+        public static LinkWrapper ParseLinkWrapper(JsonNode? linkWrapperNode)
+        {
+            if (linkWrapperNode == null)
+                throw new Exception("linkWrapper array item was null");
+
+            var urlPrefix = linkWrapperNode.GetRequiredString("prefix");
+            var queryStringKey = linkWrapperNode.GetRequiredString("queryString");
+            
+            return new LinkWrapper(urlPrefix, queryStringKey);
         }
 
     }

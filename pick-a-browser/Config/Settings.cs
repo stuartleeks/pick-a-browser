@@ -18,12 +18,14 @@ namespace pick_a_browser.Config
 {
     public class Settings
     {
-        public Settings(Browsers browsers, List<Rule> rules)
+        public Settings(Browsers browsers, Transformations transformations, List<Rule> rules)
         {
             Browsers = browsers;
+            Transformations = transformations;
             Rules = rules;
         }
         public Browsers Browsers { get; }
+        public Transformations Transformations { get; }
         public List<Rule> Rules { get; }
 
         // TODO - add tranformation rules (link shorteners, regex rules)
@@ -51,6 +53,5 @@ namespace pick_a_browser.Config
             settingsFilename = Path.Join(AppContext.BaseDirectory, "pick-a-browser-settings.jon");
             return settingsFilename;
         }
-
     }
 }
