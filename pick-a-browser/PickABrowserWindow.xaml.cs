@@ -71,7 +71,7 @@ namespace pick_a_browser
     {
         public PickABrowserViewModel(List<Browser> browsers, string originalUrl, string url)
         {
-            _browsers = browsers.Select(b => new BrowserViewModel(b, url)).ToList();
+            _browsers = browsers.Select((b,i) => new BrowserViewModel(b, url, i)).ToList();
             _originalUrl = originalUrl;
             _url = url;
         }
@@ -122,16 +122,19 @@ namespace pick_a_browser
     {
         private readonly Browser _browser;
         private readonly string _url;
+        private readonly int _index;
 
-        public BrowserViewModel(Browser browser, string url)
+        public BrowserViewModel(Browser browser, string url, int index)
         {
             _browser = browser;
             _url = url;
+            _index = index;
         }
 
         public string Name { get => _browser.Name; }
         public string? IconPath { get => _browser.IconPath; }
 
+        public string DisplayText { get => $"{_index + 1}: {Name}"; }
         public DelegateCommand<object?> Launch => new DelegateCommand<object?>(foo =>
         {
             _browser.Launch(_url);
