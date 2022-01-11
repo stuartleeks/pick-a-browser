@@ -27,7 +27,6 @@ namespace pick_a_browser.Config
         public List<Rule> Rules { get; }
 
         // TODO - add tranformation rules (link shorteners, regex rules)
-        // TODO - add browser matches (simple, prefix, regex)
         public static async Task<Settings> LoadAsync()
         {
             return await SettingsSerialization.LoadFromFileAsync(GetSettingsFilename());
@@ -35,15 +34,22 @@ namespace pick_a_browser.Config
 
         private static string GetSettingsFilename()
         {
+            // If PICK_A_BROWSER_CONFIG is set, use it
             var settingsFilename = Environment.GetEnvironmentVariable("PICK_A_BROWSER_CONFIG");
             if (!string.IsNullOrEmpty(settingsFilename))
                 return settingsFilename;
 
+            // Try user profile settings file first if it exists...
             var profilePath = Environment.GetEnvironmentVariable("USERPROFILE");
             if (string.IsNullOrEmpty(profilePath))
                 throw new Exception("USERPROFILE not set");
+            settingsFilename = Path.Join(profilePath, "pick-a-browser-settings.json");
+            if (!string.IsNullOrEmpty(settingsFilename) && File.Exists(settingsFilename))
+                return settingsFilename;
 
-            return Path.Join(profilePath, "pick-a-browser-settings.json");
+            // Lastly, look for settings next to the app
+            settingsFilename = Path.Join(AppContext.BaseDirectory, "pick-a-browser-settings.jon");
+            return settingsFilename;
         }
 
     }
