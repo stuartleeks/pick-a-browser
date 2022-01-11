@@ -13,7 +13,7 @@
   <PropertyGroup>
 		<!-- <PublishReadyToRun>true</PublishReadyToRun> -->
     <!-- <PublishSingleFile>true</PublishSingleFile> -->
-    <SelfContained>true</SelfContained>
+    <!-- <SelfContained>true</SelfContained> -->
     <StartupObject>pick_a_browser.App</StartupObject>
   </PropertyGroup>
 
