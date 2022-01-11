@@ -183,12 +183,12 @@ namespace pick_a_browser
         {
             var settings = await Settings.LoadAsync();
 
-            var url = args.Length > 0 ? args[0] : "";
-            var loadingViewModel = new LoadingViewModel { Url = url };
+            var originalUrl = args.Length > 0 ? args[0] : "";
+            var loadingViewModel = new LoadingViewModel { Url = originalUrl };
 
             var cts = new CancellationTokenSource();
             var loadingTask = ShowLoadingAsync(loadingViewModel, cts.Token);
-            url = await UnwrapLinkAsync(url, u => loadingViewModel.Url = u, cts.Token);
+            var url = await UnwrapLinkAsync(originalUrl, u => loadingViewModel.Url = u, settings.Transformations, cts.Token);
             cts.Cancel();
 
             // Get matches with highest weights (handle multiple matches with the same weight)
@@ -220,7 +220,7 @@ namespace pick_a_browser
                 Current.Shutdown();
             }
 
-            var model = new PickABrowserViewModel(browsers, url);
+            var model = new PickABrowserViewModel(browsers, originalUrl, url);
             var window = new PickABrowserWindow(model);
             window.Show();
         }
@@ -240,10 +240,13 @@ namespace pick_a_browser
             window.Show(); // TODO - allow cancelling from the LoadingWindow?
         }
 
-        private static async Task<string> UnwrapLinkAsync(string url, Action<string> urlUpdated, CancellationToken cancellationToken)
+        private static async Task<string> UnwrapLinkAsync(string url, Action<string> urlUpdated, Transformations transformations, CancellationToken cancellationToken)
         {
             var result = url;
-            var client = new HttpClient();
+            var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
+
+            var linkShorteners = DefaultLinkShorteners.Concat(transformations.LinkShorteners).ToList();
+            var linkWrappers = DefaultLinkWrappers.Concat(transformations.LinkWrappers).ToList();
 
             while (true)
             {
@@ -284,7 +287,7 @@ namespace pick_a_browser
         /// <summary>
         /// linkShorteners require a GET request which returns a redirect resopnse with Location header for the wrapped URL
         /// </summary>
-        private static readonly string[] linkShorteners = // TODO - allow adding via config
+        private static readonly string[] DefaultLinkShorteners = // TODO - allow adding via config
         {
             "aka.ms",
             "t.co",
@@ -294,7 +297,7 @@ namespace pick_a_browser
         /// <summary>
         /// linkWrappers contain the target URL in a query string value
         /// </summary>
-        private static readonly LinkWrapper[] linkWrappers = {
+        private static readonly LinkWrapper[] DefaultLinkWrappers = {
             new LinkWrapper("https://staticsint.teams.cdn.office.net/evergreen-assets/safelinks/", "url"),
         };
 

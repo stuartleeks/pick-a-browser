@@ -84,5 +84,59 @@ namespace pick_a_browser.tests.Config
             Assert.Equal("example.com", hostRule!.Host);
             Assert.Equal("browser2", hostRule.Browser);
         }
+
+
+        [Fact]
+        public void ParseLinkShorteners()
+        {
+            var json = @"{
+    ""browsers"": [],
+    ""transformations"" : {
+        ""linkShorteners"": [
+            ""shortener1"",
+            ""shortener2"",
+        ]
+    },
+    ""rules"": []
+}";
+
+            var settings = SettingsSerialization.ParseSettings(json);
+
+            Assert.NotNull(settings.Transformations);
+            Assert.NotNull(settings.Transformations.LinkShorteners);
+            Assert.Equal(2, settings.Transformations.LinkShorteners.Count);
+
+            Assert.Equal("shortener1", settings.Transformations.LinkShorteners[0]);
+            Assert.Equal("shortener2", settings.Transformations.LinkShorteners[1]);
+        }
+
+        [Fact]
+        public void ParseLinkWrappers()
+        {
+            var json = @"{
+    ""browsers"": [],
+    ""transformations"" : {
+        ""linkWrappers"": [
+            { ""prefix"": ""https://example.com"", ""queryString"" : ""url"" },
+            { ""prefix"": ""https://example.net"", ""queryString"" : ""u"" },
+        ]
+    },
+    ""rules"": []
+}";
+
+            var settings = SettingsSerialization.ParseSettings(json);
+
+            Assert.NotNull(settings.Transformations);
+            Assert.NotNull(settings.Transformations.LinkWrappers);
+            Assert.Equal(2, settings.Transformations.LinkWrappers.Count);
+
+            var wrapper = settings.Transformations.LinkWrappers[0];
+            Assert.Equal("https://example.com", wrapper.UrlPrefix);
+            Assert.Equal("url", wrapper.QueryStringKey);
+
+            wrapper = settings.Transformations.LinkWrappers[1];
+            Assert.Equal("https://example.net", wrapper.UrlPrefix);
+            Assert.Equal("u", wrapper.QueryStringKey);
+        }
     }
 }

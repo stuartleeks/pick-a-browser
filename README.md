@@ -50,6 +50,47 @@ The `browsers` property is an array of objects with the following properties:
 | iconPath | string (optional) | not currently used                                                           |
 | hidden   | bool (optional)   | When no rules are matched, the UI displays a list of all non-hidden browsers |
 
+### Transformations
+
+The top-level `transformations` property allows you to define URL transformations that are applied before rules are evaluated.
+
+There is some built-in handling of link shorteners/wrappers, but you can
+
+#### Link Shorteners
+
+Link shorteners provide a short link that redirects to the underlying link.
+
+To add a link shortener, add the host value to the `linkShorteners` array under the `transformations` property.
+
+```jsonc
+{
+	"transformations" : {
+		"linkShorteners": [ "aka.ms" ] // NOTE that `aka.ms` is included in the default shorteners
+	}
+}
+```
+
+#### Link Wrappers
+
+Link wrappers provide a URL that embeds the underlying URL in a query string parameter.
+
+To add a link wrapper, add the wrapper value to the `linkWrappers` array under the `transformations` property.
+
+| Name        | Type              | Description                                              |
+| ----------- | ----------------- | -------------------------------------------------------- |
+| prefix      | string (required) | The URL prefix to match for the shortener                |
+| queryString | string (required) | The name of the query string value that contains the URL |
+
+```jsonc
+{
+	"transformations" : {
+		"linkWrappers" : [
+			{ "prefix" : "https://staticsint.teams.cdn.office.net/evergreen-assets/safelinks/", "queryString": "url"}
+		]
+	}
+}
+```
+
 ### Rules
 
 The top-level `rules` property allows you to define rules to configure a browser to be automatically launched for certain URLs.
