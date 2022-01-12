@@ -300,6 +300,7 @@ namespace pick_a_browser
         /// </summary>
         private static readonly LinkWrapper[] DefaultLinkWrappers = {
             new LinkWrapper("https://staticsint.teams.cdn.office.net/evergreen-assets/safelinks/", "url"),
+            new LinkWrapper("https://nam06.safelinks.protection.outlook.com/", "url"),
         };
 
     }
