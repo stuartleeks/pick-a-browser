@@ -49,6 +49,8 @@ jobs:
 
     - name: Create Release
       if: github.ref == 'refs/heads/main'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         7z a release.zip .\pick-a-browser\bin\Release\net6.0-windows\win10-x64\publish\*
         gh release create "v${env:VERSION_TAG}" --title "Release ${env:VERSION_TAG}" release.zip
