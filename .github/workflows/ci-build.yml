@@ -34,21 +34,13 @@ jobs:
         $versionTag = $gitversionInfo.SemVer
         echo "VERSION_TAG=$versionTag" >> $env:GITHUB_ENV
 
-    # - name: Run Tests
-    #   run: dotnet test
+    - name: Run Tests
+      run: dotnet test
 
     - name: Publish App
       run: |
         echo "Version: ${env:VERSION_TAG}"
         dotnet publish .\pick-a-browser\pick-a-browser.csproj -r win10-x64  -p:PublishSingleFile=true -p:PublishTrimmed=false --self-contained true -c Release
-
-    - name: test1
-      run: 7z a release.zip .\pick-a-browser\bin\Release\net6.0-windows\win10-x64\publish\*
-
-    - uses: actions/upload-artifact@v2
-      with:
-        name: release.zip
-        path: .\release.zip
 
     - uses: actions/upload-artifact@v2
       with:
@@ -57,4 +49,6 @@ jobs:
 
     - name: Create Release
       if: github.ref == 'refs/heads/main'
-      run: gh release create "v${env:VERSION_TAG}" --title "Release ${env:VERSION_TAG}" .\pick-a-browser\bin\Release\net6.0-windows\win10-x64\publish\*
+      run: |
+        7z a release.zip .\pick-a-browser\bin\Release\net6.0-windows\win10-x64\publish\*
+        gh release create "v${env:VERSION_TAG}" --title "Release ${env:VERSION_TAG}" release.zip
