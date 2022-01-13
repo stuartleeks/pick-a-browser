@@ -29,7 +29,10 @@ jobs:
     - name: Set version
       run: |
         dotnet tool install --global GitVersion.Tool --version 5.8.0
-        dotnet-gitversion /updateassemblyinfo
+        $gitversionInfo = dotnet-gitversion /updateassemblyinfo | ConvertFrom-Json
+        $gitversionInfo
+        $versionTag = $gitversionInfo.SemVer
+        echo "VERSION_TAG=$gitversionInfo" >> $env:GITHUB_ENV
 
     - name: Run Tests
       run: dotnet test
@@ -41,3 +44,9 @@ jobs:
       with:
         name: pick-a-browser
         path: .\pick-a-browser\bin\Release\net6.0-windows\win10-x64\publish\
+
+    - name: Test version variable
+      run: "ls env:"
+
+    # - name: Create Release
+    #   run: gh release create test1 --title "test release 1" --notes "notes go here..." .\README.md
