@@ -32,21 +32,21 @@ jobs:
         $gitversionInfo = dotnet-gitversion /updateassemblyinfo | ConvertFrom-Json
         $gitversionInfo
         $versionTag = $gitversionInfo.SemVer
-        echo "VERSION_TAG=$gitversionInfo" >> $env:GITHUB_ENV
+        echo "VERSION_TAG=$versionTag" >> $env:GITHUB_ENV
 
     - name: Run Tests
       run: dotnet test
 
     - name: Publish App
-      run: dotnet publish .\pick-a-browser\pick-a-browser.csproj -r win10-x64  -p:PublishSingleFile=true -p:PublishTrimmed=false --self-contained true -c Release
+      run: |
+        echo "Version: ${env:VERSION_TAG}"
+        dotnet publish .\pick-a-browser\pick-a-browser.csproj -r win10-x64  -p:PublishSingleFile=true -p:PublishTrimmed=false --self-contained true -c Release
 
     - uses: actions/upload-artifact@v2
       with:
         name: pick-a-browser
         path: .\pick-a-browser\bin\Release\net6.0-windows\win10-x64\publish\
 
-    - name: Test version variable
-      run: "ls env:"
-
-    # - name: Create Release
-    #   run: gh release create test1 --title "test release 1" --notes "notes go here..." .\README.md
+    - name: Create Release
+      if: github.ref == 'refs/heads/main'
+      run: gh release create "v${env:VERSION_TAG}" --title "Release ${env:VERSION_TAG}" .\pick-a-browser\bin\Release\net6.0-windows\win10-x64\publish\*
