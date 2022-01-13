@@ -26,27 +26,13 @@ jobs:
       with:
         dotnet-version: 6.0.x
 
-    - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@v0.9.11
-      with:
-        versionSpec: "5.8.0"
-
-    - name: Determine version
-      uses: gittools/actions/gitversion/execute@v0.9.11
-
-    - name: Display version
+    - name: Set version
       run: |
-        echo "SemVer: $GITVERSION_SEMVER"
-
-    #     # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
-    #     - name: Setup MSBuild.exe
-    #       uses: microsoft/setup-msbuild@v1.0.2
+        dotnet tool install --global GitVersion.Tool --version 5.8.0
+        dotnet-gitversion /updateassemblyinfo
 
     - name: Run Tests
       run: dotnet test
-
-    - name: Build App
-      run: dotnet build --configuration Release  -r win10-x64 /p:AssemblyVersion=$GITVERSION_SEMVER /p:FileVersion=$GITVERSION_ASSEMBLYSEMFILEVER /p:InformationalVersion=$GITVERSION_SEMVER
 
     - name: Publish App
       run: dotnet publish .\pick-a-browser\pick-a-browser.csproj -r win10-x64  -p:PublishSingleFile=true -p:PublishTrimmed=false --self-contained true -c Release
