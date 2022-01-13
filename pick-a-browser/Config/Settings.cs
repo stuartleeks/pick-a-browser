@@ -50,7 +50,7 @@ namespace pick_a_browser.Config
                 return settingsFilename;
 
             // Lastly, look for settings next to the app
-            settingsFilename = Path.Join(AppContext.BaseDirectory, "pick-a-browser-settings.jon");
+            settingsFilename = Path.Join(AppContext.BaseDirectory, "pick-a-browser-settings.json");
             return settingsFilename;
         }
     }
