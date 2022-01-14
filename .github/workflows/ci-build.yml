@@ -40,7 +40,7 @@ jobs:
     - name: Publish App
       run: |
         echo "Version: ${env:VERSION_TAG}"
-        dotnet publish .\pick-a-browser\pick-a-browser.csproj -r win10-x64  -p:PublishSingleFile=true -p:PublishTrimmed=false --self-contained true -c Release
+        dotnet publish .\pick-a-browser\pick-a-browser.csproj -r win10-x64  -p:PublishSingleFile=true -p:PublishTrimmed=false --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true -c Release
 
     - uses: actions/upload-artifact@v2
       with:

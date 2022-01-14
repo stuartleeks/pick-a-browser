@@ -19,6 +19,8 @@
 		<!-- <PublishReadyToRun>true</PublishReadyToRun> -->
     <!-- <PublishSingleFile>true</PublishSingleFile> -->
     <!-- <SelfContained>true</SelfContained> -->
+      <!-- <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract> -->
+
     <StartupObject>pick_a_browser.App</StartupObject>
   </PropertyGroup>
 
