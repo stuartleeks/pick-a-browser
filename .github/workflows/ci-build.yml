@@ -40,7 +40,7 @@ jobs:
     - name: Publish App
       run: |
         echo "Version: ${env:VERSION_TAG}"
-        dotnet publish .\pick-a-browser\pick-a-browser.csproj -r win10-x64  -p:PublishSingleFile=true -p:PublishTrimmed=false --self-contained true -c Release
+        dotnet publish .\pick-a-browser\pick-a-browser.csproj -r win10-x64  -p:PublishSingleFile=true -p:PublishTrimmed=false --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true -c Release
 
     - uses: actions/upload-artifact@v2
       with:
@@ -53,4 +53,4 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         7z a release.zip .\pick-a-browser\bin\Release\net6.0-windows\win10-x64\publish\*
-        gh release create "v${env:VERSION_TAG}" --title "Release ${env:VERSION_TAG}" release.zip
+        gh release create "v${env:VERSION_TAG}" --title "Release ${env:VERSION_TAG}" release.zip .\pick-a-browser\bin\Release\net6.0-windows\win10-x64\publish\pick-a-browser.exe
