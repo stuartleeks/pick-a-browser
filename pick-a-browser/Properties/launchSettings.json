@@ -11,6 +11,10 @@
     "uninstall": {
       "commandName": "Project",
       "commandLineArgs": "--uninstall"
+    },
+    "update": {
+      "commandName": "Project",
+      "commandLineArgs": "--update"
     }
   }
 }

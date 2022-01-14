@@ -77,12 +77,8 @@ namespace pick_a_browser
             _originalUrl = originalUrl;
             _url = url;
 
-            var assembly = typeof(pick_a_browser.App)!.Assembly;
-            Version = assembly.GetName()?.Version?.ToString();
-
-            var informationalVersionAttribute= Attribute.GetCustomAttribute(assembly, typeof(AssemblyInformationalVersionAttribute)) as AssemblyInformationalVersionAttribute;
-            if (informationalVersionAttribute != null)
-                InformationalVersion = informationalVersionAttribute.InformationalVersion;
+            Version = Updater.GetAssemblyVersion()?.ToString();
+            InformationalVersion = Updater.GetAssemblyInformationalVersion()?.InformationalVersion;
         }
 
         private List<BrowserViewModel> _browsers;

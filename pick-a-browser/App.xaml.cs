@@ -45,6 +45,11 @@ namespace pick_a_browser
                             RunUninstall();
                             Current.Shutdown();
                             return;
+
+                        case "--update":
+                            await RunUpdateAsync();
+                            Current.Shutdown();
+                            return;
                     }
                 }
 
@@ -177,6 +182,10 @@ namespace pick_a_browser
 
             browsersKey.DeleteSubKeyTree("pick-a-browser");
             MessageBox.Show("pick-a-browser uninstalled");
+        }
+        private static async Task RunUpdateAsync()
+        {
+            await Updater.UpdateAsync();
         }
 
         private static async Task RunPickABrowserAsync(string[] args)
