@@ -15,3 +15,6 @@ using System.Windows;
 [assembly: AssemblyProduct("pick-a-browser")]
 [assembly: AssemblyTitle("browser selector for Windows: https://github.com/stuartleeks/pick-a-browser")]
 
+[assembly: AssemblyVersion("0.0.0.1")]
+[assembly: AssemblyFileVersion("0.0.0.1")]
+[assembly: AssemblyInformationalVersion("0.0.0.1-dev")]
