@@ -1,8 +1,10 @@
 ﻿using pick_a_browser.Config;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -74,6 +76,13 @@ namespace pick_a_browser
             _browsers = browsers.Select((b,i) => new BrowserViewModel(b, url, i)).ToList();
             _originalUrl = originalUrl;
             _url = url;
+
+            var assembly = typeof(pick_a_browser.App)!.Assembly;
+            Version = assembly.GetName()?.Version?.ToString();
+
+            var informationalVersionAttribute= Attribute.GetCustomAttribute(assembly, typeof(AssemblyInformationalVersionAttribute)) as AssemblyInformationalVersionAttribute;
+            if (informationalVersionAttribute != null)
+                InformationalVersion = informationalVersionAttribute.InformationalVersion;
         }
 
         private List<BrowserViewModel> _browsers;
@@ -97,6 +106,9 @@ namespace pick_a_browser
             get { return _url; }
             set { _url = value; FirePropertyChanged(); }
         }
+
+        public string? Version { get; }
+        public string? InformationalVersion { get; }
     }
 
     public class DesignTimePickABrowserViewModel : PickABrowserViewModel
