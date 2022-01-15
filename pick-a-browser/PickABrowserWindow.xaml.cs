@@ -73,7 +73,7 @@ namespace pick_a_browser
     {
         public PickABrowserViewModel(List<Browser> browsers, string originalUrl, string url)
         {
-            _browsers = browsers.Select((b,i) => new BrowserViewModel(b, url, i)).ToList();
+            _browsers = browsers.Select((b, i) => new BrowserViewModel(b, url, i)).ToList();
             _originalUrl = originalUrl;
             _url = url;
 
@@ -103,8 +103,36 @@ namespace pick_a_browser
             set { _url = value; FirePropertyChanged(); }
         }
 
+        private Version? _updateAvailable;
+        public Version? UpdateAvailable
+        {
+            get { return _updateAvailable; }
+            set
+            {
+                _updateAvailable = value;
+                FirePropertyChanged();
+                FirePropertyChanged(nameof(UpdateAvailableVisibility));
+            }
+        }
+        public Visibility UpdateAvailableVisibility
+        {
+            // TODO - use converter from UpdateAvailable property
+            get => _updateAvailable == null ? Visibility.Collapsed : Visibility.Visible;
+        }
+
         public string? Version { get; }
         public string? InformationalVersion { get; }
+
+
+
+        private bool _isUpdating = false;
+        public DelegateCommand<object?> Update => new DelegateCommand<object?>(foo =>
+        {
+            _isUpdating = true;
+            var viewModel = new UpdateViewModel(UpdateAvailable!);
+            var window = new UpdateWindow(viewModel);
+            window.Show();
+        }, _ => UpdateAvailable != null && !_isUpdating);
     }
 
     public class DesignTimePickABrowserViewModel : PickABrowserViewModel
@@ -112,6 +140,7 @@ namespace pick_a_browser
         public DesignTimePickABrowserViewModel()
             : base(GetBrowsers(), "https://aka.ms/example", "https://example.com/some/path")
         {
+            UpdateAvailable = new Version("1.2.3");
         }
 
         private static List<Browser> GetBrowsers()

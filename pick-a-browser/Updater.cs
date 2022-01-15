@@ -13,7 +13,7 @@ using System.Windows;
 
 namespace pick_a_browser
 {
-    public class Updater
+    public static class Updater
     {
 
         public static Version? GetAssemblyVersion()
@@ -28,19 +28,41 @@ namespace pick_a_browser
             return Attribute.GetCustomAttribute(assembly, typeof(AssemblyInformationalVersionAttribute)) as AssemblyInformationalVersionAttribute;
         }
 
-        public static async Task UpdateAsync()
+        public static async Task<Version?> CheckForUpdateAsync()
         {
-            var githubRelease = await Updater.GetLatestGitHubReleaseAsync();
+            var githubRelease = await GetLatestGitHubReleaseAsync();
             if (githubRelease == null)
             {
                 MessageBox.Show("Failed to get latest GitHub release");
-                return;
+                return null;
             }
             if (githubRelease.TagName == null)
             {
                 MessageBox.Show("Failed to get latest GitHub version");
-                return;
+                return null;
             }
+            var versionString = githubRelease.TagName.Trim('v', 'V');
+            var githubVersion = new Version(versionString);
+
+            var currentVersion = GetAssemblyVersion();
+
+            var updateAvailable = githubVersion.CompareTo(currentVersion) > 0;
+
+            if (updateAvailable)
+                return githubVersion;
+            return null;
+        }
+
+        public static async Task UpdateAsync(Action<string>? statusUpdater)
+        {
+            statusUpdater?.Invoke("Getting release details...");
+
+            var githubRelease = await GetLatestGitHubReleaseAsync();
+            if (githubRelease == null)
+                throw new Exception("Failed to get latest GitHub release");
+            if (githubRelease.TagName == null)
+                throw new Exception("Failed to get latest GitHub version");
+
             var versionString = githubRelease.TagName.Trim('v', 'V');
             var githubVersion = new Version(versionString);
 
@@ -53,10 +75,7 @@ namespace pick_a_browser
 
             var asset = githubRelease.Assets.FirstOrDefault(a => a.Name == "pick-a-browser.exe");
             if (asset == null)
-            {
-                MessageBox.Show("Release didn't contain pick-a-browser.exe asset");
-                return;
-            }
+                throw new Exception("Release didn't contain pick-a-browser.exe asset");
 
             var tmpExePath = Path.Join(AppContext.BaseDirectory, "tmp.pick-a-browser.exe");  // Can't use Assembly.GetExecutingAssembly().Location in Single File App
 
@@ -71,6 +90,7 @@ namespace pick_a_browser
                 }
             };
 
+            statusUpdater?.Invoke("Downloading new release...");
             using (var stream = await client.GetStreamAsync(asset.DownloadUrl))
             using (var fileStream = File.OpenWrite(tmpExePath))
             {
@@ -82,10 +102,11 @@ namespace pick_a_browser
             var exePath = Path.Join(AppContext.BaseDirectory, "pick-a-browser.exe");
             var oldExePath = Path.Join(AppContext.BaseDirectory, "old.pick-a-browser.exe");
 
+            statusUpdater?.Invoke("Replacing installation...");
             File.Move(exePath, oldExePath);
             File.Move(tmpExePath, exePath);
 
-            MessageBox.Show("Done!");
+            statusUpdater?.Invoke("Done!");
         }
 
         public class GitHubRelease

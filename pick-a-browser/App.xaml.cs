@@ -185,11 +185,20 @@ namespace pick_a_browser
         }
         private static async Task RunUpdateAsync()
         {
-            await Updater.UpdateAsync();
+            try
+            {
+                await Updater.UpdateAsync(null);
+                MessageBox.Show("Done!");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error: {ex.Message}");
+            }
         }
 
         private static async Task RunPickABrowserAsync(string[] args)
         {
+            var appData = await AppData.Load();
             var settings = await Settings.LoadAsync();
 
             var originalUrl = args.Length > 0 ? args[0] : "";
@@ -230,7 +239,28 @@ namespace pick_a_browser
                 Current.Shutdown();
             }
 
+
             var model = new PickABrowserViewModel(browsers, originalUrl, url);
+            if (DateTime.UtcNow - appData.LastUpdateCheckUtc > TimeSpan.FromHours(4)) // TODO - config for frequency?
+            {
+                // Check GitHub
+                // IIFE style approach to async execution without awaiting
+                var _ = ((Func<Task>)(async () =>
+                {
+                    appData.LastUpdateCheckUtc = DateTime.UtcNow;
+                    await appData.SaveAsync();
+                    appData.LastUpdateCheckGitHubVersion = await Updater.CheckForUpdateAsync();
+                    await appData.SaveAsync();
+                    model.UpdateAvailable = appData.LastUpdateCheckGitHubVersion;
+                }))();
+            }
+            else
+            {
+                // Use cached version from last check
+                var currentVersion = Updater.GetAssemblyVersion();
+                if ((appData.LastUpdateCheckGitHubVersion?.CompareTo(currentVersion) ?? -1) > 0)
+                    model.UpdateAvailable = appData.LastUpdateCheckGitHubVersion;
+            }
             var window = new PickABrowserWindow(model);
             window.Show();
         }
