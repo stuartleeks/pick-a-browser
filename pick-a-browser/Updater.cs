@@ -6,7 +6,6 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Reflection;
-using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Windows;
@@ -15,6 +14,28 @@ namespace pick_a_browser
 {
     public static class Updater
     {
+        public static IDisposable GetUpdateLock()
+        {
+            var filename = GetUpdateLockFilename();
+            var path = Path.GetDirectoryName(filename);
+            if (path != null)
+                Directory.CreateDirectory(path);
+
+            try
+            {
+                var handle = File.OpenHandle(filename, FileMode.Create, FileAccess.Write, FileShare.None);
+                return handle;
+            }
+            catch (IOException ioe) when (ioe.HResult == -2147024864) // SHARING_VIOLATION - 0x80070020
+            {
+                throw new UnableToObtainUpdateLockException("Failed to obtain update lock", ioe);
+            }
+        }
+        private static string GetUpdateLockFilename()
+        {
+            return Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                            "StuartLeeks\\pick-a-browser\\update-lock.txt");
+        }
 
         public static Version? GetAssemblyVersion()
         {
@@ -55,6 +76,8 @@ namespace pick_a_browser
 
         public static async Task UpdateAsync(Action<string>? statusUpdater)
         {
+            using var _ = GetUpdateLock(); // Ensure we only have a single updater running
+
             statusUpdater?.Invoke("Getting release details...");
 
             var githubRelease = await GetLatestGitHubReleaseAsync();
@@ -153,5 +176,17 @@ namespace pick_a_browser
 
             return response;
         }
+    }
+
+
+    [Serializable]
+    public class UnableToObtainUpdateLockException : Exception
+    {
+        public UnableToObtainUpdateLockException() { }
+        public UnableToObtainUpdateLockException(string message) : base(message) { }
+        public UnableToObtainUpdateLockException(string message, Exception inner) : base(message, inner) { }
+        protected UnableToObtainUpdateLockException(
+          System.Runtime.Serialization.SerializationInfo info,
+          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
     }
 }
