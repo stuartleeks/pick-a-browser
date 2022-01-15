@@ -121,43 +121,8 @@ namespace pick_a_browser
             using (var stream = await client.GetStreamAsync(asset.DownloadUrl, cancellationToken))
             using (var fileStream = File.OpenWrite(tmpExePath))
             {
-                long totalBytesRead = 0;
-                long lastReported = 0;
-                long reportIncrements = 10 * 1024 * 1024; // 10 MB
-
-                // From https://github.com/dotnet/coreclr/blob/a6045809b3720833459c9247aeb4aafe281d7841/src/mscorlib/src/System/IO/Stream.cs#L125-L152
-                //We pick a value that is the largest multiple of 4096 that is still smaller than the large object heap threshold (85K).
-                // The CopyTo/CopyToAsync buffer is short-lived and is likely to be collected at Gen0, and it offers a significant
-                // improvement in Copy performance.
-                const int CopyBufferSize = 81920;
-                int bufferSize = CopyBufferSize;
-                byte[] buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
-                bufferSize = 0; // reuse same field for high water mark to avoid needing another field in the state machine
-                try
-                {
-                    while (true)
-                    {
-                        int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false);
-                        if (bytesRead == 0) break;
-                        if (bytesRead > bufferSize) bufferSize = bytesRead;
-                        await fileStream.WriteAsync(buffer, 0, bytesRead, cancellationToken).ConfigureAwait(false);
-                        totalBytesRead += bytesRead;
-                        if (totalBytesRead - lastReported > reportIncrements)
-                        {
-                            statusUpdater?.Invoke($"Downloaded {totalBytesRead / (1024 * 1024)} MB...");
-                            lastReported = totalBytesRead;
-                        }
-                    }
-                }
-                finally
-                {
-                    Array.Clear(buffer, 0, bufferSize); // clear only the most we used
-                    ArrayPool<byte>.Shared.Return(buffer, clearArray: false);
-                }
-                //// TODO - show update progress
-                //await stream.CopyToAsync(fileStream, cancellationToken);
+                await CopyToWithProgress(stream, fileStream, statusUpdater, cancellationToken);
             }
-
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -173,6 +138,43 @@ namespace pick_a_browser
             File.Move(tmpExePath, exePath);
 
             statusUpdater?.Invoke("Done!");
+        }
+
+        private static async Task CopyToWithProgress(Stream source, Stream destination, Action<string>? statusUpdater, CancellationToken cancellationToken)
+        {
+            long totalBytesRead = 0;
+            long lastReported = 0;
+            long reportIncrements = 10 * 1024 * 1024; // 10 MB
+
+            // From https://github.com/dotnet/coreclr/blob/a6045809b3720833459c9247aeb4aafe281d7841/src/mscorlib/src/System/IO/Stream.cs#L125-L152
+            //We pick a value that is the largest multiple of 4096 that is still smaller than the large object heap threshold (85K).
+            // The CopyTo/CopyToAsync buffer is short-lived and is likely to be collected at Gen0, and it offers a significant
+            // improvement in Copy performance.
+            const int CopyBufferSize = 81920;
+            int bufferSize = CopyBufferSize;
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+            bufferSize = 0; // reuse same field for high water mark to avoid needing another field in the state machine
+            try
+            {
+                while (true)
+                {
+                    int bytesRead = await source.ReadAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false);
+                    if (bytesRead == 0) break;
+                    if (bytesRead > bufferSize) bufferSize = bytesRead;
+                    await destination.WriteAsync(buffer, 0, bytesRead, cancellationToken).ConfigureAwait(false);
+                    totalBytesRead += bytesRead;
+                    if (totalBytesRead - lastReported > reportIncrements)
+                    {
+                        statusUpdater?.Invoke($"Downloaded {totalBytesRead / (1024 * 1024)} MB...");
+                        lastReported = totalBytesRead;
+                    }
+                }
+            }
+            finally
+            {
+                Array.Clear(buffer, 0, bufferSize); // clear only the most we used
+                ArrayPool<byte>.Shared.Return(buffer, clearArray: false);
+            }
         }
 
         public class GitHubRelease
