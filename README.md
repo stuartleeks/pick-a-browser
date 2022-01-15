@@ -17,7 +17,9 @@ As a result, I created `pick-a-browser` as a way to address this (and to tweak b
 
 ### Get the binaries
 
-Currently, you can either grab the build artifact from [the latest CI build](https://github.com/stuartleeks/pick-a-browser/actions/workflows/ci-build.yml) and unzip, or clone and build from source.
+Download `pick-a-browser.exe` from the [latest release](https://github.com/stuartleeks/pick-a-browser/releases/latest).
+
+Alternatively,  you can either grab the build artifact from [the latest CI build](https://github.com/stuartleeks/pick-a-browser/actions/workflows/ci-build.yml) and unzip, or clone and build from source.
 
 ### Installing pick-a-browser
 
