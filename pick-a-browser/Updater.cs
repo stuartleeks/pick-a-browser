@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -120,8 +121,41 @@ namespace pick_a_browser
             using (var stream = await client.GetStreamAsync(asset.DownloadUrl, cancellationToken))
             using (var fileStream = File.OpenWrite(tmpExePath))
             {
-                // TODO - show update progress
-                await stream.CopyToAsync(fileStream, cancellationToken);
+                long totalBytesRead = 0;
+                long lastReported = 0;
+                long reportIncrements = 10 * 1024 * 1024; // 10 MB
+
+                // From https://github.com/dotnet/coreclr/blob/a6045809b3720833459c9247aeb4aafe281d7841/src/mscorlib/src/System/IO/Stream.cs#L125-L152
+                //We pick a value that is the largest multiple of 4096 that is still smaller than the large object heap threshold (85K).
+                // The CopyTo/CopyToAsync buffer is short-lived and is likely to be collected at Gen0, and it offers a significant
+                // improvement in Copy performance.
+                const int CopyBufferSize = 81920;
+                int bufferSize = CopyBufferSize;
+                byte[] buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+                bufferSize = 0; // reuse same field for high water mark to avoid needing another field in the state machine
+                try
+                {
+                    while (true)
+                    {
+                        int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false);
+                        if (bytesRead == 0) break;
+                        if (bytesRead > bufferSize) bufferSize = bytesRead;
+                        await fileStream.WriteAsync(buffer, 0, bytesRead, cancellationToken).ConfigureAwait(false);
+                        totalBytesRead += bytesRead;
+                        if (totalBytesRead - lastReported > reportIncrements)
+                        {
+                            statusUpdater?.Invoke($"Downloaded {totalBytesRead / (1024 * 1024)} MB...");
+                            lastReported = totalBytesRead;
+                        }
+                    }
+                }
+                finally
+                {
+                    Array.Clear(buffer, 0, bufferSize); // clear only the most we used
+                    ArrayPool<byte>.Shared.Return(buffer, clearArray: false);
+                }
+                //// TODO - show update progress
+                //await stream.CopyToAsync(fileStream, cancellationToken);
             }
 
 
@@ -130,8 +164,12 @@ namespace pick_a_browser
             var exePath = Path.Join(AppContext.BaseDirectory, "pick-a-browser.exe");
             var oldExePath = Path.Join(AppContext.BaseDirectory, "old.pick-a-browser.exe");
 
-            statusUpdater?.Invoke("Replacing installation...");
+            statusUpdater?.Invoke($"Downloaded complete");
+            statusUpdater?.Invoke("Renaming old exe...");
+            if (File.Exists(oldExePath))
+                File.Delete(oldExePath);
             File.Move(exePath, oldExePath);
+            statusUpdater?.Invoke("Replacing with downloaded exe...");
             File.Move(tmpExePath, exePath);
 
             statusUpdater?.Invoke("Done!");

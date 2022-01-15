@@ -43,7 +43,7 @@ namespace pick_a_browser
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            if (_viewModel.IsUpdating)
+            if (_viewModel.UpdateStarted && !_viewModel.UpdateComplete)
             {
                 var button = MessageBox.Show("Closing will cancel the in-progress update. Close and cancel?", "Confirm close", MessageBoxButton.YesNo);
                 if (button == MessageBoxResult.Yes)
@@ -95,11 +95,19 @@ namespace pick_a_browser
 
 
 
-        private bool _isUpdating;
-        public bool IsUpdating
+        private bool _updateStarted;
+        public bool UpdateStarted
         {
-            get { return _isUpdating; }
-            set { _isUpdating = value; FirePropertyChanged(); }
+            get { return _updateStarted; }
+            set { _updateStarted = value; FirePropertyChanged(); }
+        }
+
+
+        private bool _updateComplete;
+        public bool UpdateComplete
+        {
+            get { return _updateComplete; }
+            set { _updateComplete = value; FirePropertyChanged(); }
         }
 
 
@@ -141,7 +149,7 @@ namespace pick_a_browser
             // IIFE style approach to async execution without awaiting
             var _ = ((Func<Task>)(async () =>
             {
-                IsUpdating = true;
+                UpdateStarted = true;
                 try
                 {
                     _cts = new CancellationTokenSource();
@@ -151,9 +159,9 @@ namespace pick_a_browser
                 {
                     AppendStatus($"Error: {ex.Message}");
                 }
-                // Not setting IsUpdating to false as needs logic to check if update can be run again
+                UpdateComplete = true;
             }))();
-        }, _ => !IsUpdating);
+        }, _ => !UpdateStarted);
 
         private void AppendStatus(string message)
         {
