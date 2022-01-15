@@ -121,7 +121,7 @@ namespace pick_a_browser
             using (var fileStream = File.OpenWrite(tmpExePath))
             {
                 // TODO - show update progress
-                await stream.CopyToAsync(fileStream);
+                await stream.CopyToAsync(fileStream, cancellationToken);
             }
 
 
