@@ -17,7 +17,9 @@ As a result, I created `pick-a-browser` as a way to address this (and to tweak b
 
 ### Get the binaries
 
-Currently, you can either grab the build artifact from [the latest CI build](https://github.com/stuartleeks/pick-a-browser/actions/workflows/ci-build.yml) and unzip, or clone and build from source.
+Download `pick-a-browser.exe` from the [latest release](https://github.com/stuartleeks/pick-a-browser/releases/latest).
+
+Alternatively,  you can either grab the build artifact from [the latest CI build](https://github.com/stuartleeks/pick-a-browser/actions/workflows/ci-build.yml) and unzip, or clone and build from source.
 
 ### Installing pick-a-browser
 
@@ -33,6 +35,18 @@ By default, `pick-a-browser` will look for `pick-a-browser-settings.json` in you
 
 If you which to put the settings in a different location, set the `PICK_A_BROWSER_CONFIG` environment variable to the full path to the settings file.
 
+### Updates
+
+The `updates` property allows you to control the update behaviour of `pick-a-browser`.
+
+The `updates` property can take any of the following values:
+
+| Value              | Description                                                                                  |
+| ------------------ | -------------------------------------------------------------------------------------------- |
+| `none`             | `pick-a-browser` will not check for updates                                                  |
+| `prompt` (default) | `pick-a-browser` will check for updates and display an indicator when an update is available |
+| `auto`             | `pick-a-browser` will checkk for updates and automatically apply them in the background      |
+
 ### Browsers
 
 The top-level `browsers` property allows you to configure browsers (or browser profiles) that `pick-a-browser` should use.
@@ -41,14 +55,14 @@ You can run `pick-a-browser --browser-scan` to generate the initial `browsers` s
 
 The `browsers` property is an array of objects with the following properties:
 
-| Name     | Type              | Description                                                                  |
-| -------- | ----------------- | ---------------------------------------------------------------------------- |
-| id       | string (required) | The id to use to identify the browser - used to refer to browsers in rules   |
-| name     | string (required) | The name to display in the browser picker UI                                 |
-| exe      | string (required) | The path to the app to launch for the browser                                |
-| args     | string (optional) | Any arguments to pass to the browser. Useful for specifying browser profiles |
-| iconPath | string (optional) | not currently used                                                           |
-| hidden   | bool (optional)   | When no rules are matched, the UI displays a list of all non-hidden browsers |
+| Name       | Type              | Description                                                                  |
+| ---------- | ----------------- | ---------------------------------------------------------------------------- |
+| `id`       | string (required) | The id to use to identify the browser - used to refer to browsers in rules   |
+| `name`     | string (required) | The name to display in the browser picker UI                                 |
+| `exe`      | string (required) | The path to the app to launch for the browser                                |
+| `args`     | string (optional) | Any arguments to pass to the browser. Useful for specifying browser profiles |
+| `iconPath` | string (optional) | not currently used                                                           |
+| `hidden`   | bool (optional)   | When no rules are matched, the UI displays a list of all non-hidden browsers |
 
 ### Transformations
 
@@ -76,10 +90,10 @@ Link wrappers provide a URL that embeds the underlying URL in a query string par
 
 To add a link wrapper, add the wrapper value to the `linkWrappers` array under the `transformations` property.
 
-| Name        | Type              | Description                                              |
-| ----------- | ----------------- | -------------------------------------------------------- |
-| prefix      | string (required) | The URL prefix to match for the shortener                |
-| queryString | string (required) | The name of the query string value that contains the URL |
+| Name          | Type              | Description                                              |
+| ------------- | ----------------- | -------------------------------------------------------- |
+| `prefix`      | string (required) | The URL prefix to match for the shortener                |
+| `queryString` | string (required) | The name of the query string value that contains the URL |
 
 ```jsonc
 {
@@ -103,11 +117,11 @@ Each rule configuration specifies a `browser` property that contains the `id` of
 
 Performs a prefix match against the full URL.
 
-| Name    | Type              | Description                                                              |
-| ------- | ----------------- | ------------------------------------------------------------------------ |
-| type    | string (required) | `prefix`                                                                 |
-| prefix  | string (required) | The prefix to match                                                      |
-| browser | string (required) | The `id` of the browser to launch or `_prompt_` to display the full list |
+| Name      | Type              | Description                                                              |
+| --------- | ----------------- | ------------------------------------------------------------------------ |
+| `type`    | string (required) | `prefix`                                                                 |
+| `prefix`  | string (required) | The prefix to match                                                      |
+| `browser` | string (required) | The `id` of the browser to launch or `_prompt_` to display the full list |
 
 e.g.
 
@@ -125,11 +139,11 @@ Perfoms a suffix match against the host portion of the URL. Handy for matching.
 
 E.g. `www.github.com` and `github.com` would both match a rule of `github.com`.
 
-| Name    | Type              | Description                                                              |
-| ------- | ----------------- | ------------------------------------------------------------------------ |
-| type    | string (required) | `host`                                                                   |
-| host    | string (required) | The host suffix to match                                                 |
-| browser | string (required) | The `id` of the browser to launch or `_prompt_` to display the full list |
+| Name      | Type              | Description                                                              |
+| --------- | ----------------- | ------------------------------------------------------------------------ |
+| `type`    | string (required) | `host`                                                                   |
+| `host`    | string (required) | The host suffix to match                                                 |
+| `browser` | string (required) | The `id` of the browser to launch or `_prompt_` to display the full list |
 
 e.g.
 
@@ -145,6 +159,7 @@ e.g.
 
 ```jsonc
 {
+	"updates" : "auto",
 	"browsers": [
 		{
 			"id": "iexplore",
@@ -170,6 +185,13 @@ e.g.
 			"hidden": false
 		}
 	],
+	"transformations" : {
+		// NOTE that these examples are included in the default transformations
+		"linkShorteners": [ "aka.ms" ], 
+		"linkWrappers" : [
+			{ "prefix" : "https://staticsint.teams.cdn.office.net/evergreen-assets/safelinks/", "queryString": "url"}
+		]
+	},
 	"rules": [
 		{
 			"type": "prefix",

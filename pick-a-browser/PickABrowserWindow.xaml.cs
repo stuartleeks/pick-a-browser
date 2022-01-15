@@ -47,7 +47,7 @@ namespace pick_a_browser
             if (browserIndex != null && browserIndex < _viewModel.Browsers.Count)
             {
                 _viewModel.Browsers[(int)browserIndex].Launch.Execute(null);
-                Application.Current.Shutdown();
+                Close();
                 return;
             }
         }
@@ -73,16 +73,12 @@ namespace pick_a_browser
     {
         public PickABrowserViewModel(List<Browser> browsers, string originalUrl, string url)
         {
-            _browsers = browsers.Select((b,i) => new BrowserViewModel(b, url, i)).ToList();
+            _browsers = browsers.Select((b, i) => new BrowserViewModel(b, url, i)).ToList();
             _originalUrl = originalUrl;
             _url = url;
 
-            var assembly = typeof(pick_a_browser.App)!.Assembly;
-            Version = assembly.GetName()?.Version?.ToString();
-
-            var informationalVersionAttribute= Attribute.GetCustomAttribute(assembly, typeof(AssemblyInformationalVersionAttribute)) as AssemblyInformationalVersionAttribute;
-            if (informationalVersionAttribute != null)
-                InformationalVersion = informationalVersionAttribute.InformationalVersion;
+            Version = Updater.GetAssemblyVersion()?.ToString();
+            InformationalVersion = Updater.GetAssemblyInformationalVersion()?.InformationalVersion;
         }
 
         private List<BrowserViewModel> _browsers;
@@ -107,8 +103,36 @@ namespace pick_a_browser
             set { _url = value; FirePropertyChanged(); }
         }
 
+        private Version? _updateAvailable;
+        public Version? UpdateAvailable
+        {
+            get { return _updateAvailable; }
+            set
+            {
+                _updateAvailable = value;
+                FirePropertyChanged();
+                FirePropertyChanged(nameof(UpdateAvailableVisibility));
+            }
+        }
+        public Visibility UpdateAvailableVisibility
+        {
+            // TODO - use converter from UpdateAvailable property
+            get => _updateAvailable == null ? Visibility.Collapsed : Visibility.Visible;
+        }
+
         public string? Version { get; }
         public string? InformationalVersion { get; }
+
+
+
+        private bool _isUpdating = false;
+        public DelegateCommand<object?> Update => new DelegateCommand<object?>(foo =>
+        {
+            _isUpdating = true;
+            var viewModel = new UpdateViewModel(UpdateAvailable!, autoStart: false);
+            var window = new UpdateWindow(viewModel);
+            window.Show();
+        }, _ => UpdateAvailable != null && !_isUpdating);
     }
 
     public class DesignTimePickABrowserViewModel : PickABrowserViewModel
@@ -116,6 +140,7 @@ namespace pick_a_browser
         public DesignTimePickABrowserViewModel()
             : base(GetBrowsers(), "https://aka.ms/example", "https://example.com/some/path")
         {
+            UpdateAvailable = new Version("1.2.3");
         }
 
         private static List<Browser> GetBrowsers()
@@ -147,10 +172,11 @@ namespace pick_a_browser
         public string? IconPath { get => _browser.IconPath; }
 
         public string DisplayText { get => $"{_index + 1}: {Name}"; }
-        public DelegateCommand<object?> Launch => new DelegateCommand<object?>(foo =>
+        public DelegateCommand<Window?> Launch => new DelegateCommand<Window?>(window =>
         {
             _browser.Launch(_url);
-            Application.Current.Shutdown();
+            if (window != null)
+                window.Close();
         });
     }
 }

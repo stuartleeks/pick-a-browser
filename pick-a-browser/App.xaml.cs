@@ -38,15 +38,18 @@ namespace pick_a_browser
 
                         case "--install":
                             RunInstall();
-                            Current.Shutdown();
                             return;
 
                         case "--uninstall":
                             RunUninstall();
-                            Current.Shutdown();
+                            return;
+
+                        case "--update":
+                            await RunUpdateAsync();
                             return;
                     }
                 }
+                
 
                 await RunPickABrowserAsync(args);
             }
@@ -178,12 +181,49 @@ namespace pick_a_browser
             browsersKey.DeleteSubKeyTree("pick-a-browser");
             MessageBox.Show("pick-a-browser uninstalled");
         }
+        private static async Task RunUpdateAsync()
+        {
+            try
+            {
+                await Updater.UpdateAsync(CancellationToken.None, null);
+                MessageBox.Show("Done!");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error: {ex.Message}");
+            }
+        }
 
         private static async Task RunPickABrowserAsync(string[] args)
         {
+            var appData = await AppData.Load();
             var settings = await Settings.LoadAsync();
 
             var originalUrl = args.Length > 0 ? args[0] : "";
+
+            Task? autoUpdateTask = null;
+            if (settings.UpdateCheck == UpdateCheck.Auto)
+                autoUpdateTask = AutoUpdateAsync(appData);
+
+
+            await RunPickABrowserInnerAsync(appData, settings, originalUrl);
+
+            // ensure auto update completes
+            if (autoUpdateTask != null)
+            {
+                try
+                {
+                    await autoUpdateTask;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error updating: {ex.Message}");
+                }
+            }
+        }
+
+        private static async Task RunPickABrowserInnerAsync(AppData appData, Settings settings, string originalUrl)
+        {
             var loadingViewModel = new LoadingViewModel { Url = originalUrl };
 
             var cts = new CancellationTokenSource();
@@ -218,12 +258,65 @@ namespace pick_a_browser
             if (browsers.Count == 1)
             {
                 browsers[0].Launch(url);
-                Current.Shutdown();
+                return;
             }
 
+
             var model = new PickABrowserViewModel(browsers, originalUrl, url);
+            if (settings.UpdateCheck == UpdateCheck.Prompt)
+            {
+                if (DateTime.UtcNow - appData.LastUpdateCheckUtc > TimeSpan.FromHours(4)) // TODO - config for frequency?
+                {
+                    // Check GitHub
+                    // IIFE style approach to async execution without awaiting
+                    var _ = ((Func<Task>)(async () =>
+                    {
+                        appData.LastUpdateCheckUtc = DateTime.UtcNow;
+                        await appData.SaveAsync();
+                        appData.LastUpdateCheckGitHubVersion = await Updater.CheckForUpdateAsync(CancellationToken.None);
+                        await appData.SaveAsync();
+                        model.UpdateAvailable = appData.LastUpdateCheckGitHubVersion;
+                    }))();
+                }
+                else
+                {
+                    // Use cached version from last check
+                    var currentVersion = Updater.GetAssemblyVersion();
+                    if ((appData.LastUpdateCheckGitHubVersion?.CompareTo(currentVersion) ?? -1) > 0)
+                        model.UpdateAvailable = appData.LastUpdateCheckGitHubVersion;
+                }
+            }
             var window = new PickABrowserWindow(model);
             window.Show();
+        }
+        private static async Task AutoUpdateAsync(AppData appData)
+        {
+            Version? availableUpdate = null;
+
+            if (DateTime.UtcNow - appData.LastUpdateCheckUtc > TimeSpan.FromHours(4)) // TODO - config for frequency?
+            {
+                appData.LastUpdateCheckUtc = DateTime.UtcNow;
+                await appData.SaveAsync();
+                appData.LastUpdateCheckGitHubVersion = await Updater.CheckForUpdateAsync(CancellationToken.None);
+                await appData.SaveAsync();
+                availableUpdate = appData.LastUpdateCheckGitHubVersion;
+            }
+            else
+            {
+                // Use cached version from last check
+                var currentVersion = Updater.GetAssemblyVersion();
+                if ((appData.LastUpdateCheckGitHubVersion?.CompareTo(currentVersion) ?? -1) > 0)
+                    availableUpdate = appData.LastUpdateCheckGitHubVersion;
+            }
+
+            if (availableUpdate == null)
+                return;
+
+            var viewModel = new UpdateViewModel(availableUpdate, autoStart: true);
+            var window = new UpdateWindow(viewModel);
+            window.Show();
+
+            //MessageBox.Show("Updated!!!"); // TODO remove once tested
         }
 
         private static async Task ShowLoadingAsync(LoadingViewModel viewModel, CancellationToken cancellationToken)

@@ -27,7 +27,9 @@ namespace pick_a_browser.Config
             var transformations = ParseTransformations(rootNode);
             var rules = ParseRules(rootNode);
 
-            return new Settings(browsers, transformations, rules);
+            var updateCheck = ParseUpdateCheck(rootNode);
+
+            return new Settings(browsers, transformations, rules, updateCheck);
         }
 
         public static Browsers ParseBrowsers(JsonNode rootNode)
@@ -170,6 +172,22 @@ namespace pick_a_browser.Config
             var queryStringKey = linkWrapperNode.GetRequiredString("queryString");
             
             return new LinkWrapper(urlPrefix, queryStringKey);
+        }
+        public static UpdateCheck ParseUpdateCheck(JsonNode rootNode)
+        {
+            var updatesNode = rootNode["updates"];
+            if (updatesNode == null)
+                return UpdateCheck.Prompt;
+
+            var updatesString = (string?)updatesNode;
+            if (updatesString == null)
+                throw new Exception($"updates property must be set to a string value: {string.Join(", ", Enum.GetNames(typeof(UpdateCheck)).Select(s => s.ToLower()))}");
+
+            object? updateCheckResult;
+            if (!Enum.TryParse(typeof(UpdateCheck), updatesString, true, out updateCheckResult))
+                throw new Exception($"updates property must one of the following values: {string.Join(", ", Enum.GetNames(typeof(UpdateCheck)).Select(s => s.ToLower()))}");
+
+            return (UpdateCheck) updateCheckResult!;
         }
 
     }
