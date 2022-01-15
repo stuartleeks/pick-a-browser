@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -22,19 +23,58 @@ namespace pick_a_browser
     /// </summary>
     public partial class UpdateWindow : Window
     {
+        private readonly UpdateViewModel _viewModel;
+
         public UpdateWindow(UpdateViewModel viewModel)
         {
             InitializeComponent();
-            DataContext = viewModel;
+            _viewModel = viewModel;
+            DataContext = _viewModel;   
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (_viewModel.AutoStart)
+            {
+                _viewModel.Message = "Starting...";
+                _viewModel.Update.Execute(null);
+            }
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (_viewModel.IsUpdating)
+            {
+                var button = MessageBox.Show("Closing will cancel the in-progress update. Close and cancel?", "Confirm close", MessageBoxButton.YesNo);
+                if (button == MessageBoxResult.Yes)
+                {
+                    _viewModel.Cancel();
+                }
+                else
+                {
+                    e.Cancel = true;
+                }
+            }
+        }
+
+        private void Window_KeyDown(object sender, KeyEventArgs e)
+        {
+            switch (e.Key)
+            {
+                case Key.Escape:
+                    Close();
+                    return;
+            }
         }
     }
 
     public class UpdateViewModel : ViewModel
     {
-        public UpdateViewModel(Version githubVersion)
+        public UpdateViewModel(Version githubVersion, bool autoStart)
         {
             _githubVersion = githubVersion;
             _message = "";
+            _autoStart = autoStart;
         }
 
         private Version _githubVersion;
@@ -71,6 +111,31 @@ namespace pick_a_browser
         }
 
 
+        private bool _autoStart;
+        public bool AutoStart
+        {
+            get { return _autoStart; }
+            set
+            {
+                _autoStart = value;
+                FirePropertyChanged();
+                FirePropertyChanged(nameof(UpdateButtonVisibility));
+            }
+        }
+        public Visibility UpdateButtonVisibility
+        {
+            get => _autoStart ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        private CancellationTokenSource? _cts;
+        public void Cancel()
+        {
+            if (_cts != null)
+            {
+                _cts.Cancel();
+                _cts = null;
+            }
+        }
         public DelegateCommand<object?> Update => new DelegateCommand<object?>(foo =>
         {
             // IIFE style approach to async execution without awaiting
@@ -79,7 +144,8 @@ namespace pick_a_browser
                 IsUpdating = true;
                 try
                 {
-                    await Updater.UpdateAsync(status => AppendStatus(status));
+                    _cts = new CancellationTokenSource();
+                    await Updater.UpdateAsync(_cts.Token, status => AppendStatus(status));
                 }
                 catch (Exception ex)
                 {
@@ -98,7 +164,7 @@ namespace pick_a_browser
     public class DesignTimeUpdateViewModel : UpdateViewModel
     {
         public DesignTimeUpdateViewModel()
-            : base(new Version("1.2.3"))
+            : base(new Version("1.2.3"), autoStart: false)
         {
             Message = "Test Message...\nMore here...";
         }

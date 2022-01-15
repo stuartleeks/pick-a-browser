@@ -18,15 +18,17 @@ namespace pick_a_browser.Config
 {
     public class Settings
     {
-        public Settings(Browsers browsers, Transformations transformations, List<Rule> rules)
+        public Settings(Browsers browsers, Transformations transformations, List<Rule> rules, UpdateCheck updateCheck)
         {
             Browsers = browsers;
             Transformations = transformations;
             Rules = rules;
+            UpdateCheck = updateCheck;
         }
         public Browsers Browsers { get; }
         public Transformations Transformations { get; }
         public List<Rule> Rules { get; }
+        public UpdateCheck UpdateCheck { get; set; }
 
         // TODO - add tranformation rules (link shorteners, regex rules)
         public static async Task<Settings> LoadAsync()

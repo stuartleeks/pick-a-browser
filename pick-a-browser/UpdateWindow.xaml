@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:pick_a_browser"
         d:DataContext="{d:DesignInstance Type=local:DesignTimeUpdateViewModel, IsDesignTimeCreatable=True}"
         mc:Ignorable="d"
-        Title="Browser Scan..." Height="450" Width="800">
+        Title="Browser Scan..." Height="450" Width="800" Loaded="Window_Loaded" Closing="Window_Closing" KeyDown="Window_KeyDown">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -17,12 +17,14 @@
                 <TextBlock Text="Available version: " />
                 <TextBlock Text="{Binding VersionString }" />
             </StackPanel>
-            <Button Content="Update" Command="{Binding Update}" HorizontalAlignment="Left"/>
+            <Button Content="Update" Command="{Binding Update}" HorizontalAlignment="Left" Visibility="{Binding UpdateButtonVisibility}"/>
         </StackPanel>
         <TextBox x:Name="output" 
                  Grid.Row="1" 
                  TextWrapping="Wrap" 
                  Text="{Binding Message}" 
+                 HorizontalAlignment="Stretch"
+                 VerticalAlignment="Stretch"
                  IsEnabled="False" Width="780" Margin="10,0,10,10" />
 
     </Grid>

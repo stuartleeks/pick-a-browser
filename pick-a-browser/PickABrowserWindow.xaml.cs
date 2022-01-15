@@ -47,7 +47,7 @@ namespace pick_a_browser
             if (browserIndex != null && browserIndex < _viewModel.Browsers.Count)
             {
                 _viewModel.Browsers[(int)browserIndex].Launch.Execute(null);
-                Application.Current.Shutdown();
+                Close();
                 return;
             }
         }
@@ -129,7 +129,7 @@ namespace pick_a_browser
         public DelegateCommand<object?> Update => new DelegateCommand<object?>(foo =>
         {
             _isUpdating = true;
-            var viewModel = new UpdateViewModel(UpdateAvailable!);
+            var viewModel = new UpdateViewModel(UpdateAvailable!, autoStart: false);
             var window = new UpdateWindow(viewModel);
             window.Show();
         }, _ => UpdateAvailable != null && !_isUpdating);
@@ -172,10 +172,11 @@ namespace pick_a_browser
         public string? IconPath { get => _browser.IconPath; }
 
         public string DisplayText { get => $"{_index + 1}: {Name}"; }
-        public DelegateCommand<object?> Launch => new DelegateCommand<object?>(foo =>
+        public DelegateCommand<Window?> Launch => new DelegateCommand<Window?>(window =>
         {
             _browser.Launch(_url);
-            Application.Current.Shutdown();
+            if (window != null)
+                window.Close();
         });
     }
 }

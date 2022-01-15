@@ -7,6 +7,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Reflection;
 using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -49,9 +50,9 @@ namespace pick_a_browser
             return Attribute.GetCustomAttribute(assembly, typeof(AssemblyInformationalVersionAttribute)) as AssemblyInformationalVersionAttribute;
         }
 
-        public static async Task<Version?> CheckForUpdateAsync()
+        public static async Task<Version?> CheckForUpdateAsync(CancellationToken cancellationToken)
         {
-            var githubRelease = await GetLatestGitHubReleaseAsync();
+            var githubRelease = await GetLatestGitHubReleaseAsync(cancellationToken);
             if (githubRelease == null)
             {
                 MessageBox.Show("Failed to get latest GitHub release");
@@ -74,13 +75,13 @@ namespace pick_a_browser
             return null;
         }
 
-        public static async Task UpdateAsync(Action<string>? statusUpdater)
+        public static async Task UpdateAsync(CancellationToken cancellationToken, Action<string>? statusUpdater)
         {
             using var _ = GetUpdateLock(); // Ensure we only have a single updater running
 
             statusUpdater?.Invoke("Getting release details...");
 
-            var githubRelease = await GetLatestGitHubReleaseAsync();
+            var githubRelease = await GetLatestGitHubReleaseAsync(cancellationToken);
             if (githubRelease == null)
                 throw new Exception("Failed to get latest GitHub release");
             if (githubRelease.TagName == null)
@@ -102,6 +103,8 @@ namespace pick_a_browser
 
             var tmpExePath = Path.Join(AppContext.BaseDirectory, "tmp.pick-a-browser.exe");  // Can't use Assembly.GetExecutingAssembly().Location in Single File App
 
+            cancellationToken.ThrowIfCancellationRequested();
+
             var client = new HttpClient
             {
                 DefaultRequestHeaders =
@@ -114,13 +117,15 @@ namespace pick_a_browser
             };
 
             statusUpdater?.Invoke("Downloading new release...");
-            using (var stream = await client.GetStreamAsync(asset.DownloadUrl))
+            using (var stream = await client.GetStreamAsync(asset.DownloadUrl, cancellationToken))
             using (var fileStream = File.OpenWrite(tmpExePath))
             {
                 // TODO - show update progress
                 await stream.CopyToAsync(fileStream);
             }
 
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             var exePath = Path.Join(AppContext.BaseDirectory, "pick-a-browser.exe");
             var oldExePath = Path.Join(AppContext.BaseDirectory, "old.pick-a-browser.exe");
@@ -148,7 +153,7 @@ namespace pick_a_browser
             [JsonPropertyName("name")]
             public string? Name { get; set; }
         }
-        public static async Task<GitHubRelease?> GetLatestGitHubReleaseAsync()
+        public static async Task<GitHubRelease?> GetLatestGitHubReleaseAsync(CancellationToken cancellationToken)
         {
             var client = new HttpClient
             {
@@ -170,9 +175,9 @@ namespace pick_a_browser
             //      sorted by the created_at attribute.
             //      The created_at attribute is the date of the commit used for the release,
             //      and not the date when the release was drafted or published.
-            var httpResponse = await client.GetAsync("https://api.github.com/repos/stuartleeks/pick-a-browser/releases/latest");
+            var httpResponse = await client.GetAsync("https://api.github.com/repos/stuartleeks/pick-a-browser/releases/latest", cancellationToken);
 
-            var response = await httpResponse.Content.ReadFromJsonAsync<GitHubRelease>();
+            var response = await httpResponse.Content.ReadFromJsonAsync<GitHubRelease>(cancellationToken: cancellationToken);
 
             return response;
         }
