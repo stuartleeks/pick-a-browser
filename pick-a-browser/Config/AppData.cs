@@ -51,7 +51,8 @@ namespace pick_a_browser.Config
             if (path != null)
                 Directory.CreateDirectory(path);
 
-            using (var stream = File.OpenWrite(filename))
+
+            using (var stream = File.Create(filename))
                 await JsonSerializer.SerializeAsync(stream, appData);
         }
     }
