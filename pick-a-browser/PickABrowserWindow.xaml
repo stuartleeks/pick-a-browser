@@ -10,7 +10,8 @@
         Title="Choose browser..." Height="Auto" Width="400"
         SizeToContent="Height"
         WindowStartupLocation="CenterScreen"
-        KeyDown="Window_KeyDown">
+        KeyDown="Window_KeyDown"
+        ResizeMode="NoResize">
 
     <Grid Background="#FFFFFFFF">
         <Grid.RowDefinitions>

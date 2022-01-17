@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:pick_a_browser"
         mc:Ignorable="d"
-        Title="Browser Scan..." Height="450" Width="800">
+        Title="Browser Scan..." Height="450" Width="800"
+        ResizeMode="NoResize">
     <Grid>
         <TextBox x:Name="browserContent" HorizontalAlignment="Stretch" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Stretch" Width="780" Height="414" />
 
