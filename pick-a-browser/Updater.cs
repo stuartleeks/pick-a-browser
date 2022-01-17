@@ -119,7 +119,7 @@ namespace pick_a_browser
 
             statusUpdater?.Invoke("Downloading new release...");
             using (var stream = await client.GetStreamAsync(asset.DownloadUrl, cancellationToken))
-            using (var fileStream = File.OpenWrite(tmpExePath))
+            using (var fileStream = File.Create(tmpExePath))
             {
                 await CopyToWithProgress(stream, fileStream, statusUpdater, cancellationToken);
             }
