@@ -6,7 +6,8 @@
         xmlns:local="clr-namespace:pick_a_browser"
         d:DataContext="{d:DesignInstance Type=local:DesignTimeUpdateViewModel, IsDesignTimeCreatable=True}"
         mc:Ignorable="d"
-        Title="Update pick-a-browser..." Height="450" Width="800" Loaded="Window_Loaded" Closing="Window_Closing" KeyDown="Window_KeyDown">
+        Title="Update pick-a-browser..." Height="450" Width="800" Loaded="Window_Loaded" Closing="Window_Closing" KeyDown="Window_KeyDown"
+        ResizeMode="NoResize">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
