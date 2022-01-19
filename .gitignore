@@ -3,3 +3,4 @@ obj
 .vs
 
 **/*.csproj.user
+/pick-a-browser/pick-a-browser-settings.json

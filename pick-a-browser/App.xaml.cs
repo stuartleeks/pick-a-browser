@@ -49,9 +49,19 @@ namespace pick_a_browser
                             return;
                     }
                 }
-                
 
-                await RunPickABrowserAsync(args);
+                if (args.Length == 0 || String.IsNullOrEmpty(args[0]))
+                {
+                    MessageBox.Show($"Missing URL", AppDomain.CurrentDomain.FriendlyName, MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+                else if (!Uri.IsWellFormedUriString(args[0], UriKind.Absolute))
+                {
+                    MessageBox.Show($"Invalid URL", AppDomain.CurrentDomain.FriendlyName, MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+                else
+                {
+                    await RunPickABrowserAsync(args);
+                }
             }
             catch (Exception ex)
             {
@@ -204,7 +214,6 @@ namespace pick_a_browser
             Task? autoUpdateTask = null;
             if (settings.UpdateCheck == UpdateCheck.Auto)
                 autoUpdateTask = AutoUpdateAsync(appData);
-
 
             await RunPickABrowserInnerAsync(appData, settings, originalUrl);
 
