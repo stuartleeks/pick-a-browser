@@ -25,7 +25,7 @@ func Test_ParseBrowsers(t *testing.T) {
 		]
 	}`
 
-	settings, err := ParseSettingsFromJson(json)
+	settings, err := ParseSettings([]byte(json))
 	assert.NilError(t, err)
 	assert.Assert(t, settings != nil)
 
@@ -48,4 +48,44 @@ func Test_ParseBrowsers(t *testing.T) {
 	assert.Assert(t, browser.IconPath != nil)
 	assert.Equal(t, "c:\\some\\path", *browser.IconPath)
 	assert.Equal(t, true, browser.Hidden)
+}
+
+func Test_ParseRules(t *testing.T) {
+	json := `{
+		"browsers": [],
+		"rules": [
+			{
+				"type" : "prefix",
+				"prefix" : "https://example.com",
+				"browser" : "browser1",
+			},
+			{
+				"type" : "host",
+				"host" : "example.com",
+				"browser" : "browser2",
+			},
+		]
+	}`
+
+	settings, err := ParseSettings([]byte(json))
+	assert.NilError(t, err)
+	assert.Assert(t, settings != nil)
+
+	assert.Assert(t, len(settings.Rules) == 2)
+
+	rule := settings.Rules[0]
+	assert.Assert(t, rule != nil)
+	assert.Equal(t, "prefix", rule.Type())
+	assert.Equal(t, "browser1", rule.BrowserId())
+
+	prefixRule := rule.(*PrefixRule)
+	assert.Equal(t, "https://example.com", prefixRule.prefixMatch)
+
+	rule = settings.Rules[1]
+	assert.Assert(t, rule != nil)
+	assert.Equal(t, "host", rule.Type())
+	assert.Equal(t, "browser2", rule.BrowserId())
+
+	hostRule := rule.(*HostRule)
+	assert.Equal(t, "example.com", hostRule.host)
 }

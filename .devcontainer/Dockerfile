@@ -20,7 +20,7 @@ RUN if [ "${NODE_VERSION}" != "none" ]; then su vscode -c "umask 0002 && . /usr/
 
 ENV PATH=${PATH}:/bin
 
-# ENV GOOS=windows
+ENV GOOS=windows
 
 USER vscode
 

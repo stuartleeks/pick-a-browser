@@ -3,123 +3,99 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"path"
+	"path/filepath"
 
 	"github.com/tidwall/jsonc"
 )
 
 type Settings struct {
 	Browsers []Browser
+	Rules    []Rule
 }
 
-type Browser struct {
-	Id       string
-	Name     string
-	Exe      string
-	Args     *string
-	IconPath *string
-	Hidden   bool
+const settingsBaseFilename string = "pick-a-browser-settings.json"
+
+func getSettingsFilename() (string, error) {
+	// If PICK_A_BROWSER_CONFIG is set, use it
+	settingsFilename := os.Getenv("PICK_A_BROWSER_CONFIG")
+	if settingsFilename != "" {
+		return settingsFilename, nil
+	}
+
+	// Try user profile settings file first if it exists...
+	profilePath := os.Getenv("USERPROFILE")
+	if profilePath == "" {
+		return "", fmt.Errorf("USERPROFILE env var not set")
+	}
+	settingsFilename = path.Join(profilePath, settingsBaseFilename)
+	_, err := os.Stat(settingsFilename)
+	if err != nil {
+		return settingsFilename, nil
+	}
+	if !os.IsNotExist(err) {
+		return "", fmt.Errorf("error accessing settings file (%q): %s", settingsFilename, err)
+	}
+
+	// Lastly, look for settings next to the app
+	exe := os.Args[0]
+	return filepath.Join(filepath.Dir(exe), settingsBaseFilename), nil
 }
 
-func ParseSettingsFromJson(jsonString string) (*Settings, error) {
-
+func LoadSettings() (*Settings, error) {
+	settingsFilename, err := getSettingsFilename()
+	if err != nil {
+		return nil, err
+	}
+	return LoadSettingsFromFile(settingsFilename)
+}
+func LoadSettingsFromFile(filename string) (*Settings, error) {
+	buf, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSettings(buf)
+}
+func ParseSettings(jsonBuf []byte) (*Settings, error) {
 	var root map[string]interface{}
-	jsonBuf := jsonc.ToJSON([]byte(jsonString))
+	jsonBuf = jsonc.ToJSON(jsonBuf)
 	err := json.Unmarshal(jsonBuf, &root)
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO - can we handle JSONC??
-
 	// TODO - update check
 	// TODO - transformations
-	// TODO - rules
 
 	browsers, err := parseBrowsers(root)
+	if err != nil {
+		return nil, err
+	}
+	rules, err := parseRules(root)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Settings{
 		Browsers: browsers,
+		Rules:    rules,
 	}, nil
 }
 
-// TODO - browser scan
-// TODO - browser launch
+// func getObjectChildNode(node map[string]interface{}, propertyName string) (map[string]interface{}, error) {
+// 	if childNode, ok := node[propertyName]; ok {
+// 		switch childNode := childNode.(type) {
+// 		case map[string]interface{}:
+// 			return childNode, nil
+// 		default:
+// 			return map[string]interface{}{}, fmt.Errorf("%q property should be an object", propertyName)
+// 		}
+// 	}
+// 	return map[string]interface{}{}, fmt.Errorf("%q property not found", propertyName)
+// }
 
-func parseBrowsers(rootNode map[string]interface{}) ([]Browser, error) {
-	browsersNode, err := getArrayChildNode(rootNode, "browsers")
-	if err != nil {
-		return []Browser{}, err
-	}
-
-	browsers := []Browser{}
-
-	for _, v := range browsersNode {
-		browserNode, ok := v.(map[string]interface{})
-		if !ok {
-			return []Browser{}, fmt.Errorf("expected objects in browsers array")
-		}
-		browser, err := parseBrowser(browserNode)
-		if err != nil {
-			return []Browser{}, err
-		}
-		browsers = append(browsers, browser)
-	}
-
-	return browsers, nil
-}
-func parseBrowser(browserNode map[string]interface{}) (Browser, error) {
-
-	id, err := getRequiredString(browserNode, "id")
-	if err != nil {
-		return Browser{}, err
-	}
-	name, err := getRequiredString(browserNode, "name")
-	if err != nil {
-		return Browser{}, err
-	}
-	exe, err := getRequiredString(browserNode, "exe")
-	if err != nil {
-		return Browser{}, err
-	}
-	args, err := getOptionalString(browserNode, "args")
-	if err != nil {
-		return Browser{}, err
-	}
-	iconPath, err := getOptionalString(browserNode, "iconPath")
-	if err != nil {
-		return Browser{}, err
-	}
-	hidden, err := getOptionalBoolWithDefault(browserNode, "hidden", false)
-	if err != nil {
-		return Browser{}, err
-	}
-
-	return Browser{
-		Id:       id,
-		Name:     name,
-		Exe:      exe,
-		Args:     args,
-		IconPath: iconPath,
-		Hidden:   hidden,
-	}, nil
-}
-
-func getObjectChildNode(node map[string]interface{}, propertyName string) (map[string]interface{}, error) {
-	if childNode, ok := node[propertyName]; ok {
-		switch childNode := childNode.(type) {
-		case map[string]interface{}:
-			return childNode, nil
-		default:
-			return map[string]interface{}{}, fmt.Errorf("%q property should be an object", propertyName)
-		}
-	}
-	return map[string]interface{}{}, fmt.Errorf("%q property not found", propertyName)
-}
-
-func getArrayChildNode(node map[string]interface{}, propertyName string) ([]interface{}, error) {
+func getArrayChildNode(node map[string]interface{}, propertyName string, required bool) ([]interface{}, error) {
 	if childNode, ok := node[propertyName]; ok {
 		switch childNode := childNode.(type) {
 		case []interface{}:
@@ -128,7 +104,10 @@ func getArrayChildNode(node map[string]interface{}, propertyName string) ([]inte
 			return []interface{}{}, fmt.Errorf("%q property should be an array", propertyName)
 		}
 	}
-	return []interface{}{}, fmt.Errorf("%q property not found", propertyName)
+	if required {
+		return []interface{}{}, fmt.Errorf("%q property not found", propertyName)
+	}
+	return []interface{}{}, nil
 }
 
 func getRequiredString(node map[string]interface{}, propertyName string) (string, error) {

@@ -31,7 +31,7 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "go install github.com/kyoh86/richgo",
+	"postCreateCommand": "GOOS=linux go install github.com/kyoh86/richgo",
 
 	// Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
 	"remoteUser": "vscode"
