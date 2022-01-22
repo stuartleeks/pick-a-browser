@@ -14,6 +14,26 @@ type LinkWrapper struct {
 	QueryStringKey string
 }
 
+func GetDefaultLinkShorteners() []string {
+	return []string{
+		"aka.ms",
+		"t.co",
+		"go.microsoft.com",
+	}
+}
+func GetDefaultLinkWrappers() []LinkWrapper {
+	return []LinkWrapper{
+		{
+			UrlPrefix:      "https://staticsint.teams.cdn.office.net/evergreen-assets/safelinks/",
+			QueryStringKey: "url",
+		},
+		{
+			UrlPrefix:      "https://nam06.safelinks.protection.outlook.com/",
+			QueryStringKey: "url",
+		},
+	}
+}
+
 func parseTransformations(rootNode map[string]interface{}) (Transformations, error) {
 	transformationsNode, err := getObjectChildNode(rootNode, "transformations", false)
 	if err != nil {

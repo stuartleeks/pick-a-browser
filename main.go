@@ -10,8 +10,10 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"net/url"
 	"os"
+	"strings"
 
 	"github.com/lxn/walk"
 	walkd "github.com/lxn/walk/declarative"
@@ -44,6 +46,27 @@ func main() {
 			walk.MsgBox(nil, "pick-a-browser error...", fmt.Sprintf("Failed to parse url %q:\n%s", urlString, err), walk.MsgBoxOK)
 			return
 		}
+
+		linkWrappers := append(config.GetDefaultLinkWrappers(), settings.Transformations.LinkWrappers...)
+		linkShorteners := append(config.GetDefaultLinkShorteners(), settings.Transformations.LinkShorteners...)
+		for {
+			// TODO - decide what to do with errors here
+			newUrl, _ := transformUrlWithWrappers(url, linkWrappers)
+			if newUrl != nil {
+				url = newUrl
+				continue
+			}
+
+			newUrl, _ = transformUrlWithShorteners(url, linkShorteners)
+			if newUrl != nil {
+				url = newUrl
+				continue
+			}
+
+			break
+		}
+		urlString = url.String()
+
 		// match rules - launch browser and exit on match, or fall through to show list
 		matchedBrowserId := matchRules(settings.Rules, url)
 
@@ -173,4 +196,36 @@ func matchRules(rules []config.Rule, url *url.URL) string {
 		}
 	}
 	return browserId
+}
+
+func transformUrlWithShorteners(url *url.URL, linkShorteners []string) (*url.URL, error) {
+	for _, linkShortener := range linkShorteners {
+		if strings.HasSuffix(url.Host, linkShortener) {
+			client := &http.Client{
+				CheckRedirect: func(req *http.Request, via []*http.Request) error {
+					return http.ErrUseLastResponse
+				},
+			}
+
+			resp, err := client.Get(url.String())
+			if err != nil {
+				return nil, err
+			}
+			newUrlString := resp.Header.Get("Location")
+			return url.Parse(newUrlString)
+		}
+	}
+	return nil, nil
+}
+func transformUrlWithWrappers(url *url.URL, linkWrappers []config.LinkWrapper) (*url.URL, error) {
+	for _, linkWrapper := range linkWrappers {
+		if strings.HasPrefix(url.String(), linkWrapper.UrlPrefix) {
+			newUrlString := url.Query().Get(linkWrapper.QueryStringKey)
+			if newUrlString == "" {
+				return nil, nil
+			}
+			return url.Parse(newUrlString)
+		}
+	}
+	return nil, nil
 }
