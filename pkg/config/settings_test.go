@@ -50,6 +50,58 @@ func Test_ParseBrowsers(t *testing.T) {
 	assert.Equal(t, true, browser.Hidden)
 }
 
+func Test_ParseLinkShorteners(t *testing.T) {
+	json := `{
+		"browsers": [],
+		"transformations" : {
+			"linkShorteners": [
+				"shortener1",
+				"shortener2",
+			]
+		},
+		"rules": []
+	}`
+
+	settings, err := ParseSettings([]byte(json))
+	assert.NilError(t, err)
+	assert.Assert(t, settings != nil)
+
+	assert.Assert(t, len(settings.Transformations.LinkShorteners) == 2)
+
+	shortener := settings.Transformations.LinkShorteners[0]
+	assert.Equal(t, "shortener1", shortener)
+
+	shortener = settings.Transformations.LinkShorteners[1]
+	assert.Equal(t, "shortener2", shortener)
+}
+
+func Test_ParseLinkWrappers(t *testing.T) {
+	json := `{
+		"browsers": [],
+		"transformations" : {
+			"linkWrappers": [
+				{ "prefix": "https://example.com", "queryString" : "url" },
+				{ "prefix": "https://example.net", "queryString" : "u" },
+			]
+		},
+		"rules": []
+	}`
+
+	settings, err := ParseSettings([]byte(json))
+	assert.NilError(t, err)
+	assert.Assert(t, settings != nil)
+
+	assert.Assert(t, len(settings.Transformations.LinkWrappers) == 2)
+
+	wrapper := settings.Transformations.LinkWrappers[0]
+	assert.Equal(t, "https://example.com", wrapper.UrlPrefix)
+	assert.Equal(t, "url", wrapper.QueryStringKey)
+
+	wrapper = settings.Transformations.LinkWrappers[1]
+	assert.Equal(t, "https://example.net", wrapper.UrlPrefix)
+	assert.Equal(t, "u", wrapper.QueryStringKey)
+}
+
 func Test_ParseRules(t *testing.T) {
 	json := `{
 		"browsers": [],
