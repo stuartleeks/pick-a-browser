@@ -29,18 +29,41 @@ func main() {
 		return
 	}
 
-	// TODO - handle --update, --install, --uninstall, ....
-
 	args := os.Args[1:]
+
+	if len(args) > 0 {
+		switch args[0] {
+		// TODO - handle --update, --install, --uninstall, ....
+		case "--install":
+			walk.MsgBox(nil, "pick-a-browser TODO...", "--install not implemented yet", walk.MsgBoxOK|walk.MsgBoxIconError)
+			return
+		case "--uninstall":
+			walk.MsgBox(nil, "pick-a-browser TODO...", "--uninstall not implemented yet", walk.MsgBoxOK|walk.MsgBoxIconError)
+			return
+		case "--update":
+			walk.MsgBox(nil, "pick-a-browser TODO...", "--update not implemented yet", walk.MsgBoxOK|walk.MsgBoxIconError)
+			return
+		case "--browser-scan":
+			walk.MsgBox(nil, "pick-a-browser TODO...", "--browser-scan not implemented yet", walk.MsgBoxOK|walk.MsgBoxIconError)
+			return
+		}
+	}
 
 	if len(args) > 1 {
 		walk.MsgBox(nil, "pick-a-browser error...", "Expected a single arg with the url", walk.MsgBoxOK)
 		return
 	}
 
-	urlString := ""
+	url := ""
 	if len(args) == 1 {
-		urlString = args[0]
+		url = args[0]
+	}
+	HandleUrl(url, settings)
+
+}
+
+func HandleUrl(urlString string, settings *config.Settings) {
+	if urlString != "" {
 		url, err := url.Parse(urlString)
 		if err != nil {
 			walk.MsgBox(nil, "pick-a-browser error...", fmt.Sprintf("Failed to parse url %q:\n%s", urlString, err), walk.MsgBoxOK)
@@ -177,6 +200,7 @@ func main() {
 	if _, err := window.Run(); err != nil {
 		log.Fatal(err)
 	}
+
 }
 
 type MyMainWindow struct {
