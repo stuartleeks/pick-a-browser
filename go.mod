@@ -5,6 +5,7 @@ go 1.17
 require (
 	github.com/akavel/rsrc v0.10.2 // indirect
 	github.com/google/go-cmp v0.5.7 // indirect
+	github.com/google/uuid v1.3.0 // indirect
 	github.com/kyoh86/richgo v0.3.10 // indirect
 	github.com/kyoh86/xdg v1.2.0 // indirect
 	github.com/lxn/walk v0.0.0-20210112085537-c389da54e794 // indirect
