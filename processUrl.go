@@ -85,6 +85,11 @@ func HandleUrl(urlString string, settings *config.Settings) {
 			Font:     defaultFont,
 			Text:     "URL: " + urlString,
 		},
+		walkd.Label{
+			Font: defaultFont,
+			Text: fmt.Sprintf("Version: %s (%s, %s)", version, commit, date),
+			Row:  len(browsers) + 1,
+		},
 	}
 
 	for _i, tmp := range browsers {
@@ -116,7 +121,7 @@ func HandleUrl(urlString string, settings *config.Settings) {
 		// Layout:   walkd.VBox{MarginsZero: true},
 		Layout: walkd.Grid{
 			MarginsZero: true,
-			Rows:        len(settings.Browsers) + 1,
+			Rows:        len(settings.Browsers) + 2,
 			Margins:     walkd.Margins{Top: 15, Bottom: 15, Left: 0, Right: 0},
 			// SpacingZero: true,
 			// Spacing:     0,

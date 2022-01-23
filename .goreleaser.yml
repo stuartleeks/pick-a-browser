@@ -1,0 +1,21 @@
+builds:
+- env:
+  - CGO_ENABLED=0
+  binary: pick-a-browser
+  goos:
+    - windows
+  goarch:
+    - 386
+  main: ./main.go
+  ldflags:
+    - -s -w -X main.version={{.Version}} -X main.commit={{.ShortCommit}} -X main.date={{.Date}} -X "main.goversion={{.Env.GOVERSION}}"
+
+archives:
+  - format: binary
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+    - '^docs:'
+    - '^test:'

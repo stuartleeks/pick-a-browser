@@ -16,6 +16,14 @@ import (
 	"github.com/stuartleeks/pick-a-browser/pkg/config"
 )
 
+// Overridden via ldflags
+var (
+	version   = "0.0.1-devbuild"
+	commit    = "unknown"
+	date      = "unknown"
+	goversion = "unknown"
+)
+
 func main() {
 	settings, err := config.LoadSettings()
 	if err != nil {
@@ -27,7 +35,6 @@ func main() {
 
 	if len(args) > 0 {
 		switch args[0] {
-		// TODO - handle --update, --install, --uninstall, ....
 		case "--install":
 			err := HandleInstall()
 			if err == nil {
@@ -45,7 +52,7 @@ func main() {
 			}
 			return
 		case "--update":
-			walk.MsgBox(nil, "pick-a-browser TODO...", "--update not implemented yet", walk.MsgBoxOK|walk.MsgBoxIconError)
+			walk.MsgBox(nil, "pick-a-browser TODO...", "--update not implemented yet", walk.MsgBoxOK|walk.MsgBoxIconError) // TODO
 			return
 		case "--browser-scan":
 			err := HandleBrowserScan(settings)
