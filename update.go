@@ -6,16 +6,28 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/blang/semver"
 	"github.com/lxn/walk"
 	"github.com/rhysd/go-github-selfupdate/selfupdate"
+
+	"github.com/stuartleeks/pick-a-browser/pkg/appstate"
 )
 
 func HandleUpdate() error {
 
 	latest, err := CheckForUpdate(version)
 	if err != nil {
+		return err
+	}
+
+	state, err := appstate.Load()
+	if err != nil {
+		return err
+	}
+	state.LastUpdateCheck = time.Now().UTC()
+	if err = appstate.Save(state); err != nil {
 		return err
 	}
 
