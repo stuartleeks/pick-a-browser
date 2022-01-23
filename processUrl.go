@@ -1,7 +1,3 @@
-// Copyright 2012 The Walk Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 //go:build windows
 // +build windows
 
@@ -103,7 +99,6 @@ func HandleUrl(urlString string, settings *config.Settings) {
 			Font:      walkd.Font{Family: "Segoe UI", PointSize: 20},
 			Alignment: walkd.AlignHCenterVNear,
 			OnClicked: func() {
-				// TODO launch!
 				err := browser.Launch(urlString)
 				if err != nil {
 					walk.MsgBox(nil, "pick-a-browser error...", fmt.Sprintf("Failed to launch browser (%q):\n%s", browser.Id, err), walk.MsgBoxOK)
@@ -118,14 +113,11 @@ func HandleUrl(urlString string, settings *config.Settings) {
 		Title:    "pick-a-browser...",
 		MinSize:  walkd.Size{Width: 150, Height: 150},
 		Size:     walkd.Size{Width: 300, Height: 400},
-		// Layout:   walkd.VBox{MarginsZero: true},
 		Layout: walkd.Grid{
 			MarginsZero: true,
 			Rows:        len(settings.Browsers) + 2,
 			Margins:     walkd.Margins{Top: 15, Bottom: 15, Left: 0, Right: 0},
-			// SpacingZero: true,
-			// Spacing:     0,
-			Alignment: walkd.AlignHCenterVNear,
+			Alignment:   walkd.AlignHCenterVNear,
 		},
 		Children: widgets,
 		// OnKeyDown isn't being invoked :-(

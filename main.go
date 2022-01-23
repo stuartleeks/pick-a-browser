@@ -1,7 +1,3 @@
-// Copyright 2012 The Walk Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 //go:build windows
 // +build windows
 
@@ -18,10 +14,9 @@ import (
 
 // Overridden via ldflags
 var (
-	version   = "0.0.1-devbuild"
-	commit    = "unknown"
-	date      = "unknown"
-	goversion = "unknown"
+	version = "0.0.1-devbuild"
+	commit  = "unknown"
+	date    = "unknown"
 )
 
 func main() {
@@ -52,7 +47,10 @@ func main() {
 			}
 			return
 		case "--update":
-			walk.MsgBox(nil, "pick-a-browser TODO...", "--update not implemented yet", walk.MsgBoxOK|walk.MsgBoxIconError) // TODO
+			err := HandleUpdate()
+			if err != nil {
+				walk.MsgBox(nil, "pick-a-browser", err.Error(), walk.MsgBoxOK|walk.MsgBoxIconError)
+			}
 			return
 		case "--browser-scan":
 			err := HandleBrowserScan(settings)
