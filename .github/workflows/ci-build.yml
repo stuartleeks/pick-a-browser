@@ -36,6 +36,8 @@ jobs:
         
     - name: Determine version
       uses: gittools/actions/gitversion/execute@v0.9.7
+      with:
+            useConfigFile: true
 
     - name: Build and run CLI
       uses: stuartleeks/devcontainer-build-run@v0.1
