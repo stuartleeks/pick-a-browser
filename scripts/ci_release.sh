@@ -13,13 +13,7 @@ else
   if [[] -z $IS_PR ]] && [[ $BRANCH == "refs/heads/main" ]]; then
     echo "On main setting PUBLISH=true"
     export PUBLISH=true
-	if [[] -z $GITVERSION_SEMVER ]]; then
-		echo "GITVERSION_SEMVER not set"
-		exit 1
-	fi
-	export VERSION_TAG=$GITVERSION_SEMVER
   else
-	export VERSION_TAG=v0.1.$BUILD_NUMBER
     echo "Skipping publish as is from PR: $PR_NUMBER or not 'refs/heads/main' BRANCH: $BRANCH"
   fi
 fi
@@ -27,7 +21,7 @@ fi
 sudo chown -R $(whoami) .
 
 # Set version for release (picked up later by goreleaser)
-git tag -f $VERSION_TAG
+git tag -f v0.3.$BUILD_NUMBER
 
 export GOVERSION=$(go version)
 
