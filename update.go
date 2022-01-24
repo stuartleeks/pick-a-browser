@@ -68,30 +68,3 @@ func CheckForUpdate(currentVersion string) (*selfupdate.Release, error) {
 	}
 	return latest, nil
 }
-
-// func PeriodicCheckForUpdate(currentVersion string) {
-// 	const checkInterval time.Duration = 24 * time.Hour
-
-// 	lastCheck := config.GetLastUpdateCheck()
-
-// 	if time.Now().Before(lastCheck.Add(checkInterval)) {
-// 		return
-// 	}
-// 	fmt.Println("Checking for updates...")
-// 	latest, err := CheckForUpdate(currentVersion)
-// 	if err != nil {
-// 		fmt.Printf("Error checking for updates: %s", err)
-// 	}
-
-// 	config.SetLastUpdateCheck(time.Now())
-// 	if err = config.SaveConfig(); err != nil {
-// 		fmt.Printf("Error saving last update check time: :%s\n", err)
-// 	}
-
-// 	if latest == nil {
-// 		return
-// 	}
-
-// 	fmt.Printf("\n\n UPDATE AVAILABLE: %s \n \n Release notes: %s\n", latest.Version, latest.ReleaseNotes)
-// 	fmt.Printf("Run `devcontainer update` to apply the update\n\n")
-// }

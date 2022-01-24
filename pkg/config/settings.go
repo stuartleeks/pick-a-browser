@@ -10,10 +10,19 @@ import (
 	"github.com/tidwall/jsonc"
 )
 
+type UpdateCheck string
+
+const (
+	UpdateCheckNone   UpdateCheck = "never"
+	UpdateCheckPrompt UpdateCheck = "prompt"
+	UpdateCheckAuto   UpdateCheck = "auto"
+)
+
 type Settings struct {
 	Browsers        []Browser
 	Transformations Transformations
 	Rules           []Rule
+	UpdateCheck     UpdateCheck
 }
 
 const settingsBaseFilename string = "pick-a-browser-settings.json"
@@ -66,9 +75,6 @@ func ParseSettings(jsonBuf []byte) (*Settings, error) {
 		return nil, err
 	}
 
-	// TODO - update check
-	// TODO - transformations
-
 	browsers, err := parseBrowsers(root)
 	if err != nil {
 		return nil, err
@@ -81,10 +87,33 @@ func ParseSettings(jsonBuf []byte) (*Settings, error) {
 	if err != nil {
 		return nil, err
 	}
+	updateCheck, err := parseUpdateCheck(root)
+	if err != nil {
+		return nil, err
+	}
 
 	return &Settings{
 		Browsers:        browsers,
 		Transformations: transformations,
 		Rules:           rules,
+		UpdateCheck:     updateCheck,
 	}, nil
+}
+
+func parseUpdateCheck(rootNode map[string]interface{}) (UpdateCheck, error) {
+	updateCheckString, err := getOptionalString(rootNode, "updates")
+	if err != nil {
+		return "", err
+	}
+
+	if updateCheckString == nil {
+		return UpdateCheckAuto, nil
+	}
+
+	switch UpdateCheck(*updateCheckString) {
+	case UpdateCheckNone, UpdateCheckPrompt, UpdateCheckAuto:
+		return UpdateCheck(*updateCheckString), nil
+	default:
+		return "", fmt.Errorf("unrecognised value for updateCheck (%q), supported values are none, prompt, auto", *updateCheckString)
+	}
 }
