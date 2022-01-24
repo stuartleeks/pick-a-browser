@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 
 	"github.com/tidwall/jsonc"
@@ -39,7 +38,7 @@ func getSettingsFilename() (string, error) {
 	if profilePath == "" {
 		return "", fmt.Errorf("USERPROFILE env var not set")
 	}
-	settingsFilename = path.Join(profilePath, settingsBaseFilename)
+	settingsFilename = filepath.Join(profilePath, settingsBaseFilename)
 	_, err := os.Stat(settingsFilename)
 	if err != nil {
 		return settingsFilename, nil

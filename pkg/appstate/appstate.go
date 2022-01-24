@@ -3,7 +3,6 @@ package appstate
 import (
 	"encoding/json"
 	"os"
-	"path"
 	"path/filepath"
 	"time"
 )
@@ -15,7 +14,7 @@ type AppState struct {
 func Load() (AppState, error) {
 	appDataPath := os.Getenv("LOCALAPPDATA")
 
-	filename := path.Join(appDataPath, "stuartleeks/pick-a-browser/app-state.json")
+	filename := filepath.Join(appDataPath, "stuartleeks", "pick-a-browser", "app-state.json")
 
 	buf, err := os.ReadFile(filename)
 	if err != nil {
@@ -41,7 +40,7 @@ func Save(appState AppState) error {
 	}
 
 	appDataPath := os.Getenv("LOCALAPPDATA")
-	filename := path.Join(appDataPath, "stuartleeks/pick-a-browser/app-state.json")
+	filename := filepath.Join(appDataPath, "stuartleeks", "pick-a-browser", "app-state.json")
 	statePath := filepath.Base(filename)
 
 	if err = os.MkdirAll(statePath, 0666); err != nil {
