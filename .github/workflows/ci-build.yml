@@ -37,7 +37,7 @@ jobs:
         IS_PR: ${{ github.head_ref }}
         BRANCH: ${{ github.ref }}
       with:
-        imageName: ghcr.io/stuartleeks/devcontainer-cli-devcontainer
+        imageName: ghcr.io/stuartleeks/pick-a-browser-devcontainer
         runCmd: |
           sudo chown -R $(whoami) /go/pkg
           ./scripts/ci_release.sh
