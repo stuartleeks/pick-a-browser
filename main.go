@@ -100,6 +100,10 @@ func PerformUpdateCheck(settings *config.Settings) error {
 				return fmt.Errorf("error checking for updates:\n%s", err)
 			}
 
+			if latest == nil {
+				return nil
+			}
+
 			// apply on auto
 			apply := settings.UpdateCheck == config.UpdateCheckAuto
 			if settings.UpdateCheck == config.UpdateCheckPrompt {
