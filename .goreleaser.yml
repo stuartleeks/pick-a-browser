@@ -6,12 +6,19 @@ builds:
     - windows
   goarch:
     - 386
+    - amd64
+    - arm64
   main: ./main.go
   ldflags:
-    - -s -w -X main.version={{.Version}} -X main.commit={{.ShortCommit}} -X main.date={{.Date}}"
+    - -s -w -X main.version={{.Version}} -X main.commit={{.ShortCommit}} -X main.date={{.Date}} -H windowsgui
 
 archives:
-  - format: binary
+  - id: zip
+    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+
 
 changelog:
   sort: asc
