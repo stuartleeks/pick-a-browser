@@ -12,7 +12,7 @@ fi
 if [[ -z ${IS_CI} ]]; then
   echo "Not running in CI, skipping CI setup"
 else
-  if [[] -z $IS_PR ]] && [[ $BRANCH == "refs/heads/main" ]]; then
+  if [[ -z $IS_PR ]] && [[ $BRANCH == "refs/heads/main" ]]; then
     echo "On main setting PUBLISH=true"
     export PUBLISH=true
   else
