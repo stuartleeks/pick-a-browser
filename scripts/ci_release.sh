@@ -1,5 +1,7 @@
 set -e
 
+GOOS=linux go install github.com/goreleaser/goreleaser@latest
+
 # Fail if build number not set
 if [[ -z "$BUILD_NUMBER" ]]; then
     echo "Env var 'BUILD_NUMBER' must be set for this script to work correctly"
