@@ -63,6 +63,9 @@ func main() {
 				walk.MsgBox(nil, "pick-a-browser", err.Error(), walk.MsgBoxOK|walk.MsgBoxIconError)
 			}
 			return
+		case "--version":
+			walk.MsgBox(nil, "pick-a-browser", fmt.Sprintf("Version: %s (%s, %s)", version, commit, date), walk.MsgBoxOK)
+			return
 		}
 	}
 
