@@ -41,7 +41,7 @@ func Save(appState AppState) error {
 
 	appDataPath := os.Getenv("LOCALAPPDATA")
 	filename := filepath.Join(appDataPath, "stuartleeks", "pick-a-browser", "app-state.json")
-	statePath := filepath.Base(filename)
+	statePath, _ := filepath.Split(filename)
 
 	if err = os.MkdirAll(statePath, 0666); err != nil {
 		return err
