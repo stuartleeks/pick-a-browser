@@ -40,7 +40,7 @@ func getSettingsFilename() (string, error) {
 	}
 	settingsFilename = filepath.Join(profilePath, settingsBaseFilename)
 	_, err := os.Stat(settingsFilename)
-	if err != nil {
+	if err == nil {
 		return settingsFilename, nil
 	}
 	if !os.IsNotExist(err) {
