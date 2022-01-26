@@ -25,7 +25,8 @@
 	// Add the IDs of extensions you want installed when the container is created.
 	"extensions": [
 		"golang.Go",
-		"stuartleeks.vscode-go-by-example"
+		"stuartleeks.vscode-go-by-example",
+		"fcrespo82.markdown-table-formatter"
 	],
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.

@@ -5,7 +5,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -16,12 +15,11 @@ import (
 	"github.com/stuartleeks/pick-a-browser/pkg/config"
 )
 
-func HandleUrl(urlString string, settings *config.Settings) {
+func HandleUrl(urlString string, settings *config.Settings) error {
 	if urlString != "" {
 		url, err := url.Parse(urlString)
 		if err != nil {
-			walk.MsgBox(nil, "pick-a-browser error...", fmt.Sprintf("Failed to parse url %q:\n%s", urlString, err), walk.MsgBoxOK)
-			return
+			return fmt.Errorf("failed to parse url %q:\n%s", urlString, err)
 		}
 
 		linkWrappers := append(config.GetDefaultLinkWrappers(), settings.Transformations.LinkWrappers...)
@@ -51,15 +49,10 @@ func HandleUrl(urlString string, settings *config.Settings) {
 			// get browser from Id
 			for _, browser := range settings.Browsers {
 				if browser.Id == matchedBrowserId {
-					err := browser.Launch(urlString)
-					if err != nil {
-						walk.MsgBox(nil, "pick-a-browser error...", fmt.Sprintf("Failed to launch browser (%q):\n%s", matchedBrowserId, err), walk.MsgBoxOK)
-					}
-					return
+					return browser.Launch(urlString)
 				}
 			}
-			walk.MsgBox(nil, "pick-a-browser error...", fmt.Sprintf("Failed to find browser with id %q", matchedBrowserId), walk.MsgBoxOK)
-			return
+			return fmt.Errorf("failed to find browser with id %q", matchedBrowserId)
 		}
 	}
 
@@ -88,6 +81,8 @@ func HandleUrl(urlString string, settings *config.Settings) {
 		},
 	}
 
+	var innerErr error = nil
+
 	for _i, tmp := range browsers {
 		browserNumber := _i + 1
 		browser := tmp
@@ -99,10 +94,7 @@ func HandleUrl(urlString string, settings *config.Settings) {
 			Font:      walkd.Font{Family: "Segoe UI", PointSize: 20},
 			Alignment: walkd.AlignHCenterVNear,
 			OnClicked: func() {
-				err := browser.Launch(urlString)
-				if err != nil {
-					walk.MsgBox(nil, "pick-a-browser error...", fmt.Sprintf("Failed to launch browser (%q):\n%s", browser.Id, err), walk.MsgBoxOK)
-				}
+				innerErr = browser.Launch(urlString)
 				mw.Close()
 			},
 		})
@@ -153,8 +145,10 @@ func HandleUrl(urlString string, settings *config.Settings) {
 	}
 
 	if _, err := window.Run(); err != nil {
-		log.Fatal(err)
+		return err
 	}
+
+	return innerErr
 
 }
 
