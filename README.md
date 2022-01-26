@@ -52,6 +52,8 @@ The `updates` property can take any of the following values:
 
 The `log` property allows you to control the logging behaviour of `pick-a-browser`.
 
+Logs are written to `%LOCALAPPDATA%\StuartLeeks\pick-a-browser\pick-a-browser.log`
+
 E.g. 
 
 ```json
