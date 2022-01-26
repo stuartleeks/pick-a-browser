@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"golang.org/x/sys/windows/registry"
 )
@@ -39,6 +40,11 @@ func HandleInstall() error {
 	}
 
 	exePath := os.Args[0]
+	exePath, err = filepath.Abs(exePath)
+	if err != nil {
+		return fmt.Errorf("failed to convert to absolute path (%q): %s", exePath, err)
+	}
+
 	description := "browser selector - see https://github.com/stuartleeks/pick-a-browser"
 	iconPath := fmt.Sprintf("%s,0", exePath)
 	keysToCreate := []RegistryKey{
