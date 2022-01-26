@@ -22,6 +22,7 @@ type Settings struct {
 	Transformations Transformations
 	Rules           []Rule
 	UpdateCheck     UpdateCheck
+	Log             Log
 }
 
 const settingsBaseFilename string = "pick-a-browser-settings.json"
@@ -90,12 +91,17 @@ func ParseSettings(jsonBuf []byte) (*Settings, error) {
 	if err != nil {
 		return nil, err
 	}
+	log, err := parseLog(root)
+	if err != nil {
+		return nil, err
+	}
 
 	return &Settings{
 		Browsers:        browsers,
 		Transformations: transformations,
 		Rules:           rules,
 		UpdateCheck:     updateCheck,
+		Log:             log,
 	}, nil
 }
 

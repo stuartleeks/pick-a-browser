@@ -42,10 +42,35 @@ The `updates` property allows you to control the update behaviour of `pick-a-bro
 The `updates` property can take any of the following values:
 
 | Value              | Description                                                                                  |
-| ------------------ | -------------------------------------------------------------------------------------------- |
+|--------------------|----------------------------------------------------------------------------------------------|
 | `none`             | `pick-a-browser` will not check for updates                                                  |
 | `prompt` (default) | `pick-a-browser` will check for updates and display an indicator when an update is available |
 | `auto`             | `pick-a-browser` will checkk for updates and automatically apply them in the background      |
+
+
+### Logging
+
+The `log` property allows you to control the logging behaviour of `pick-a-browser`.
+
+E.g. 
+
+```json
+{
+	"log" : {
+		"level": "info"
+	}
+}
+```
+
+#### Log level
+
+The `level` property under `log` can take any of the following values:
+
+| Value             | Description                                        |
+|-------------------|----------------------------------------------------|
+| `error` (default) | `pick-a-browser` will log errors                   |
+| `info`            | `pick-a-browser` will log info messages and above  |
+| `debug`           | `pick-a-browser` will log debug messages and above |
 
 ### Browsers
 
@@ -56,7 +81,7 @@ You can run `pick-a-browser --browser-scan` to generate the initial `browsers` s
 The `browsers` property is an array of objects with the following properties:
 
 | Name       | Type              | Description                                                                  |
-| ---------- | ----------------- | ---------------------------------------------------------------------------- |
+|------------|-------------------|------------------------------------------------------------------------------|
 | `id`       | string (required) | The id to use to identify the browser - used to refer to browsers in rules   |
 | `name`     | string (required) | The name to display in the browser picker UI                                 |
 | `exe`      | string (required) | The path to the app to launch for the browser                                |
@@ -91,7 +116,7 @@ Link wrappers provide a URL that embeds the underlying URL in a query string par
 To add a link wrapper, add the wrapper value to the `linkWrappers` array under the `transformations` property.
 
 | Name          | Type              | Description                                              |
-| ------------- | ----------------- | -------------------------------------------------------- |
+|---------------|-------------------|----------------------------------------------------------|
 | `prefix`      | string (required) | The URL prefix to match for the shortener                |
 | `queryString` | string (required) | The name of the query string value that contains the URL |
 
@@ -118,7 +143,7 @@ Each rule configuration specifies a `browser` property that contains the `id` of
 Performs a prefix match against the full URL.
 
 | Name      | Type              | Description                                                              |
-| --------- | ----------------- | ------------------------------------------------------------------------ |
+|-----------|-------------------|--------------------------------------------------------------------------|
 | `type`    | string (required) | `prefix`                                                                 |
 | `prefix`  | string (required) | The prefix to match                                                      |
 | `browser` | string (required) | The `id` of the browser to launch or `_prompt_` to display the full list |
@@ -140,7 +165,7 @@ Perfoms a suffix match against the host portion of the URL. Handy for matching.
 E.g. `www.github.com` and `github.com` would both match a rule of `github.com`.
 
 | Name      | Type              | Description                                                              |
-| --------- | ----------------- | ------------------------------------------------------------------------ |
+|-----------|-------------------|--------------------------------------------------------------------------|
 | `type`    | string (required) | `host`                                                                   |
 | `host`    | string (required) | The host suffix to match                                                 |
 | `browser` | string (required) | The `id` of the browser to launch or `_prompt_` to display the full list |
@@ -160,27 +185,30 @@ e.g.
 ```jsonc
 {
 	"updates" : "auto",
+	"log" : {
+		"level": "info"
+	},
 	"browsers": [
 		{
 			"id": "iexplore",
 			"name": "Internet Explorer",
 			"exe": "C:\\Program Files\\Internet Explorer\\iexplore.exe",
 			"iconPath": "C:\\Program Files\\Internet Explorer\\iexplore.exe",
-			"hidden": true
+			"hidden": true // avoid being shown Internet Explorer as a choice even though it's registered in Windows
 		},
 		{
 			"id": "work",
 			"name": "Microsoft Edge - Work",
 			"exe": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
-			"args": "--profile-directory=\u0022Default\u0022",
+			"args": "--profile-directory=\"Default\"",
 			"iconPath": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
 			"hidden": false
 		},
 		{
 			"id": "personal",
-			"name": "Microsoft Edge - stuart@leeks.net (MSA)",
+			"name": "Microsoft Edge - Personal",
 			"exe": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
-			"args": "--profile-directory=\u0022Profile 1\u0022",
+			"args": "--profile-directory=\"Profile 1\"",
 			"iconPath": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
 			"hidden": false
 		}
