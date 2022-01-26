@@ -16,6 +16,7 @@ import (
 )
 
 func HandleUrl(urlString string, settings *config.Settings) error {
+	urlDisplayString := "<not specified>"
 	if urlString != "" {
 		url, err := url.Parse(urlString)
 		if err != nil {
@@ -41,6 +42,7 @@ func HandleUrl(urlString string, settings *config.Settings) error {
 			break
 		}
 		urlString = url.String()
+		urlDisplayString = urlString
 
 		// match rules - launch browser and exit on match, or fall through to show list
 		matchedBrowserId := matchRules(settings.Rules, url)
@@ -54,6 +56,11 @@ func HandleUrl(urlString string, settings *config.Settings) error {
 			}
 			return fmt.Errorf("failed to find browser with id %q", matchedBrowserId)
 		}
+	}
+
+	const maxDisplayLength = 75
+	if len(urlDisplayString) > maxDisplayLength {
+		urlDisplayString = urlDisplayString[:maxDisplayLength] + "..."
 	}
 
 	// If here then show browser list (filter to non-hidden browsers)
@@ -72,7 +79,7 @@ func HandleUrl(urlString string, settings *config.Settings) error {
 		walkd.Label{
 			AssignTo: &mw.urlLabel,
 			Font:     defaultFont,
-			Text:     "URL: " + urlString,
+			Text:     "URL: " + urlDisplayString,
 		},
 		walkd.Label{
 			Font: defaultFont,
@@ -105,6 +112,7 @@ func HandleUrl(urlString string, settings *config.Settings) error {
 		Title:    "pick-a-browser...",
 		MinSize:  walkd.Size{Width: 150, Height: 150},
 		Size:     walkd.Size{Width: 300, Height: 400},
+		MaxSize:  walkd.Size{Width: 300, Height: 1000},
 		Layout: walkd.Grid{
 			MarginsZero: true,
 			Rows:        len(settings.Browsers) + 2,
