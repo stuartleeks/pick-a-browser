@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/lxn/walk"
 	walkd "github.com/lxn/walk/declarative"
@@ -72,14 +73,48 @@ func HandleUrl(urlString string, settings *config.Settings) error {
 	}
 
 	mw := &MyMainWindow{}
+	var copyButton *walk.PushButton
 
 	defaultFont := walkd.Font{Family: "Segoe UI", PointSize: 16}
 
 	widgets := []walkd.Widget{
-		walkd.Label{
-			AssignTo: &mw.urlLabel,
-			Font:     defaultFont,
-			Text:     "URL: " + urlDisplayString,
+		walkd.Composite{
+			Layout: walkd.HBox{},
+			Row:    0,
+			Children: []walkd.Widget{
+				walkd.Label{
+					AssignTo: &mw.urlLabel,
+					Font:     defaultFont,
+					Text:     "URL: ",
+				},
+				walkd.Label{
+					AssignTo: &mw.urlLabel,
+					Font:     defaultFont,
+					Text:     urlDisplayString,
+				},
+				walkd.PushButton{
+					AssignTo: &copyButton,
+					Text:     "📋",
+					Font:     walkd.Font{Family: "Segoe UI", PointSize: 20},
+					MaxSize:  walkd.Size{Width: 30, Height: 15},
+					OnClicked: func() {
+						err := walk.Clipboard().SetText(urlString)
+						if err != nil {
+							walk.MsgBox(
+								mw.MainWindow,
+								"pick-a-browser error...",
+								fmt.Sprintf("Failed to copy: %s", err),
+								walk.MsgBoxOK|walk.MsgBoxIconError)
+							return
+						}
+						_ = copyButton.SetText("✅")
+						go func() {
+							time.Sleep(1 * time.Second)
+							_ = copyButton.SetText("📋")
+						}()
+					},
+				},
+			},
 		},
 		walkd.Label{
 			Font: defaultFont,
