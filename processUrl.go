@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/lxn/walk"
 	walkd "github.com/lxn/walk/declarative"
@@ -16,6 +17,7 @@ import (
 )
 
 func HandleUrl(urlString string, settings *config.Settings) error {
+	urlDisplayString := "<not specified>"
 	if urlString != "" {
 		url, err := url.Parse(urlString)
 		if err != nil {
@@ -41,6 +43,7 @@ func HandleUrl(urlString string, settings *config.Settings) error {
 			break
 		}
 		urlString = url.String()
+		urlDisplayString = urlString
 
 		// match rules - launch browser and exit on match, or fall through to show list
 		matchedBrowserId := matchRules(settings.Rules, url)
@@ -56,6 +59,11 @@ func HandleUrl(urlString string, settings *config.Settings) error {
 		}
 	}
 
+	const maxDisplayLength = 75
+	if len(urlDisplayString) > maxDisplayLength {
+		urlDisplayString = urlDisplayString[:maxDisplayLength] + "..."
+	}
+
 	// If here then show browser list (filter to non-hidden browsers)
 	browsers := []config.Browser{}
 	for _, browser := range settings.Browsers {
@@ -65,14 +73,48 @@ func HandleUrl(urlString string, settings *config.Settings) error {
 	}
 
 	mw := &MyMainWindow{}
+	var copyButton *walk.PushButton
 
 	defaultFont := walkd.Font{Family: "Segoe UI", PointSize: 16}
 
 	widgets := []walkd.Widget{
-		walkd.Label{
-			AssignTo: &mw.urlLabel,
-			Font:     defaultFont,
-			Text:     "URL: " + urlString,
+		walkd.Composite{
+			Layout: walkd.HBox{},
+			Row:    0,
+			Children: []walkd.Widget{
+				walkd.Label{
+					AssignTo: &mw.urlLabel,
+					Font:     defaultFont,
+					Text:     "URL: ",
+				},
+				walkd.Label{
+					AssignTo: &mw.urlLabel,
+					Font:     defaultFont,
+					Text:     urlDisplayString,
+				},
+				walkd.PushButton{
+					AssignTo: &copyButton,
+					Text:     "📋",
+					Font:     walkd.Font{Family: "Segoe UI", PointSize: 20},
+					MaxSize:  walkd.Size{Width: 30, Height: 15},
+					OnClicked: func() {
+						err := walk.Clipboard().SetText(urlString)
+						if err != nil {
+							walk.MsgBox(
+								mw.MainWindow,
+								"pick-a-browser error...",
+								fmt.Sprintf("Failed to copy: %s", err),
+								walk.MsgBoxOK|walk.MsgBoxIconError)
+							return
+						}
+						_ = copyButton.SetText("✅")
+						go func() {
+							time.Sleep(1 * time.Second)
+							_ = copyButton.SetText("📋")
+						}()
+					},
+				},
+			},
 		},
 		walkd.Label{
 			Font: defaultFont,
@@ -105,6 +147,7 @@ func HandleUrl(urlString string, settings *config.Settings) error {
 		Title:    "pick-a-browser...",
 		MinSize:  walkd.Size{Width: 150, Height: 150},
 		Size:     walkd.Size{Width: 300, Height: 400},
+		MaxSize:  walkd.Size{Width: 300, Height: 1000},
 		Layout: walkd.Grid{
 			MarginsZero: true,
 			Rows:        len(settings.Browsers) + 2,
