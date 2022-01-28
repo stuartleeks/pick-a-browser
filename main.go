@@ -149,7 +149,7 @@ func PerformUpdateCheck(settings *config.Settings) error {
 				if err != nil {
 					return fmt.Errorf("failed to locate executable:\n%s", err)
 				}
-				if err := selfupdate.UpdateTo(latest.AssetURL, exe); err != nil {
+				if err := selfupdate.NoGitUpdater().UpdateTo(latest, exe); err != nil {
 					return fmt.Errorf("failed to perform update:\n%s", err)
 				}
 
