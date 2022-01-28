@@ -43,7 +43,7 @@ func HandleUpdate() error {
 		if err != nil {
 			return fmt.Errorf("could not locate executable path: %v", err)
 		}
-		if err := selfupdate.UpdateTo(latest.AssetURL, exe); err != nil {
+		if err := selfupdate.NoGitUpdater().UpdateTo(latest, exe); err != nil {
 			return fmt.Errorf("error occurred while updating binary: %v", err)
 		}
 		fmt.Printf("Successfully updated to version %s\n", latest.Version)
@@ -53,7 +53,7 @@ func HandleUpdate() error {
 
 func CheckForUpdate(currentVersion string) (*selfupdate.Release, error) {
 
-	latest, found, err := selfupdate.DetectLatest("stuartleeks/pick-a-browser")
+	latest, found, err := selfupdate.NoGitUpdater().DetectLatest("stuartleeks/pick-a-browser")
 	if err != nil {
 		return nil, fmt.Errorf("error occurred while detecting version: %v", err)
 	}
