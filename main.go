@@ -6,6 +6,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -41,7 +42,7 @@ func main() {
 	logger := log.WithField("PID", os.Getpid())
 
 	args := os.Args[1:]
-	log.Infoln("pick-a-browser.exe starting ", args)
+	logger.Infoln("pick-a-browser.exe starting ", args)
 
 	if len(args) > 0 {
 		switch args[0] {
@@ -100,15 +101,27 @@ func main() {
 		return
 	}
 
-	if err = PerformUpdateCheck(settings); err != nil {
+	updated, err := PerformUpdateCheck(settings)
+	if err != nil {
 		logger.Errorln("UpdateCheck failed", err)
 		walk.MsgBox(nil, "pick-a-browser error...", fmt.Sprintf("Failed to update:\n%s", err), walk.MsgBoxOK|walk.MsgBoxIconError)
+	}
+	if updated {
+		// launch the updated exe with original args and exit
+		cmd := exec.Command(os.Args[0], args...)
+		logger.Infoln("Updated - re-launching...")
+		if err = cmd.Start(); err != nil {
+			logger.Errorln("Error re-launching after update", err)
+			walk.MsgBox(nil, "pick-a-browser error...", fmt.Sprintf("Failed to re-launch after update:\n%s", err), walk.MsgBoxOK|walk.MsgBoxIconError)
+		}
+		return
 	}
 
 	url := ""
 	if len(args) == 1 {
 		url = args[0]
 	}
+	logger.Debugln("HandleUrl:", url)
 	err = HandleUrl(url, settings)
 	if err != nil {
 		logger.Errorln("HandleUrl failed", err)
@@ -116,25 +129,25 @@ func main() {
 	}
 }
 
-func PerformUpdateCheck(settings *config.Settings) error {
+func PerformUpdateCheck(settings *config.Settings) (bool, error) {
 
 	state, err := appstate.Load()
 	if err != nil {
-		return err
+		return false, err
 	}
 	if settings.UpdateCheck == config.UpdateCheckAuto || settings.UpdateCheck == config.UpdateCheckPrompt {
 		if time.Now().After(state.LastUpdateCheck.Add(updateCheckInterval)) {
 			latest, err := CheckForUpdate(version)
 			if err != nil {
-				return err
+				return false, err
 			}
 			state.LastUpdateCheck = time.Now().UTC()
 			if err = appstate.Save(state); err != nil {
-				return fmt.Errorf("error checking for updates:\n%s", err)
+				return false, fmt.Errorf("error checking for updates:\n%s", err)
 			}
 
 			if latest == nil {
-				return nil
+				return false, nil
 			}
 
 			// apply on auto
@@ -147,17 +160,18 @@ func PerformUpdateCheck(settings *config.Settings) error {
 			if apply {
 				exe, err := os.Executable()
 				if err != nil {
-					return fmt.Errorf("failed to locate executable:\n%s", err)
+					return false, fmt.Errorf("failed to locate executable:\n%s", err)
 				}
 				if err := selfupdate.NoGitUpdater().UpdateTo(latest, exe); err != nil {
-					return fmt.Errorf("failed to perform update:\n%s", err)
+					return false, fmt.Errorf("failed to perform update:\n%s", err)
 				}
 
 				walk.MsgBox(nil, "pick-a-browser...", fmt.Sprintf("Successfully updated to version %s", latest.Version), walk.MsgBoxOK)
+				return true, nil
 			}
 		}
 	}
-	return nil
+	return false, nil
 }
 
 func configureLogger(settings *config.Settings) error {
