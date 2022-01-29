@@ -99,8 +99,8 @@ func getAllBrowsers() ([]config.Browser, error) {
 	browsersExpanded := []config.Browser{}
 
 	for _, browser := range browsersTemp {
-		// TODO - expand other browsers with profiles
-		if browser.Name == "Microsoft Edge" {
+		switch browser.Name {
+		case "Microsoft Edge":
 			edgeProfiles, err := getEdgeProfiles()
 			if err != nil {
 				return []config.Browser{}, fmt.Errorf("failed to get Edge profiles: %s", err)
@@ -116,7 +116,23 @@ func getAllBrowsers() ([]config.Browser, error) {
 					Hidden:   false,
 				})
 			}
-		} else {
+		case "Google Chrome":
+			edgeProfiles, err := getChromeProfiles()
+			if err != nil {
+				return []config.Browser{}, fmt.Errorf("failed to get Chrome profiles: %s", err)
+			}
+			for _, edgeProfile := range edgeProfiles {
+				args := fmt.Sprintf("--profile-directory=\"%s\"", edgeProfile)
+				browsersExpanded = append(browsersExpanded, config.Browser{
+					Id:       uuid.NewString(),
+					Name:     browser.Name + " - " + edgeProfile,
+					Exe:      browser.Exe,
+					Args:     &args,
+					IconPath: browser.IconPath,
+					Hidden:   false,
+				})
+			}
+		default:
 			browsersExpanded = append(browsersExpanded, browser)
 		}
 	}
@@ -200,10 +216,27 @@ func getBrowserFromRegistry(key registry.Key, keyName string) (config.Browser, e
 }
 
 func getEdgeProfiles() ([]string, error) {
-	userProfile := os.Getenv("USERPROFILE")
-	edgeUserDataPath := filepath.Join(userProfile, "AppData\\Local\\Microsoft\\Edge\\User Data")
+	userProfile := os.Getenv("LOCALAPPDATA")
+	edgeUserDataPath := filepath.Join(userProfile, "Microsoft\\Edge\\User Data")
 
 	entries, err := os.ReadDir(edgeUserDataPath)
+	if err != nil {
+		return []string{}, nil
+	}
+	profiles := []string{"Default"}
+	for _, entry := range entries {
+		if entry.IsDir() && strings.HasPrefix(entry.Name(), "Profile ") {
+			profiles = append(profiles, entry.Name())
+		}
+	}
+	return profiles, nil
+}
+
+func getChromeProfiles() ([]string, error) {
+	userProfile := os.Getenv("LOCALAPPDATA")
+	chromeUserDataPath := filepath.Join(userProfile, "Google\\Chrome\\User Data")
+
+	entries, err := os.ReadDir(chromeUserDataPath)
 	if err != nil {
 		return []string{}, nil
 	}

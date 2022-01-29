@@ -51,6 +51,9 @@ func getOptionalString(node map[string]interface{}, propertyName string) (*strin
 	if !ok {
 		return nil, nil
 	}
+	if propertyNode == nil {
+		return nil, nil
+	}
 	propertyValue, ok := propertyNode.(string)
 	if !ok {
 		return nil, fmt.Errorf("optional property %q expected to be a string", propertyName)
