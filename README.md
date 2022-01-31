@@ -8,6 +8,12 @@ If no rule matches then it prompts for the browser to launch from a configured l
 After a number of reinstallations of the operating system, I wanted an automatic way to save my browser and rules configuration.
 As a result, I created `pick-a-browser` as a way to address this (and to tweak behaviour in ways that suit my usage patterns slightly better).
 
+Contents:
+
+- [Installing](#installing)
+- [Configuration](#configuration)
+- [Commands](#commands)
+
 ## Installing
 
 -   Get the binaries
@@ -241,3 +247,44 @@ e.g.
 	]
 }
 ```
+
+## Commands
+
+This section documents the command line options for `pick-a-browser`:
+
+
+### --install
+
+`pick-a-browser --install` is used to install pick-a-browser, i.e. it registers `pick-a-browser` with Windows as a browser.
+
+NOTE: This command needs to be run as administrator
+
+### --uninstall
+
+`pick-a-browser --uninstall` is used to uninstall pick-a-browser, i.e. unregister `pick-a-browser` with Windows.
+
+NOTE: This command needs to be run as administrator
+
+### --browser-scan
+
+`pick-a-browser --browser-scan` can be used to generate the list of browsers to use in your configuration.
+
+It lists the browsers registered with Windows and generates the configuration for `pick-a-browser`.
+
+For Microsoft Edge and Google Chrome, this also includes any browser profiles that are configured.
+
+This command can be re-run if you add a new browser or profile to re-generate the configuration.
+
+
+### --update
+
+`pick-a-browser --update` can be used to check for and apply any pending updates.
+
+### &lt;url&gt;
+
+`pick-a-browser <url>` is used to launch a browser with the specified url.
+
+The configured transformations and rules will be applied to the url. If a rule matches at the end of this, that browser will be launched, otherwise the browser picker will be displayed.
+
+NOTE: The url is optional and the selected browser will be launched with an empty page.
+
