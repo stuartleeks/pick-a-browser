@@ -48,7 +48,8 @@ func HandleUrl(urlString string, settings *config.Settings) error {
 		// match rules - launch browser and exit on match, or fall through to show list
 		matchedBrowserId := matchRules(settings.Rules, url)
 
-		if matchedBrowserId != "" {
+		// if browser is set and browser != _prompt_, launch the browser
+		if matchedBrowserId != "_prompt_" && matchedBrowserId != "" {
 			// get browser from Id
 			for _, browser := range settings.Browsers {
 				if browser.Id == matchedBrowserId {
