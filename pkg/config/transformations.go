@@ -24,6 +24,10 @@ func GetDefaultLinkShorteners() []string {
 func GetDefaultLinkWrappers() []LinkWrapper {
 	return []LinkWrapper{
 		{
+			UrlPrefix:      "https://statics.teams.cdn.office.net/evergreen-assets/safelinks/",
+			QueryStringKey: "url",
+		},
+		{
 			UrlPrefix:      "https://staticsint.teams.cdn.office.net/evergreen-assets/safelinks/",
 			QueryStringKey: "url",
 		},
