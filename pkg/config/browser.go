@@ -5,7 +5,8 @@ import (
 )
 
 // TODO - look at whether to collapse the json parsing down to the standard library. Want to be able to handle args being single string vs array etc...
-//      Also look at custom marhsalling: http://choly.ca/post/go-json-marshalling/
+//
+//	Also look at custom marhsalling: http://choly.ca/post/go-json-marshalling/
 type Browser struct {
 	Id       string  `json:"id"`
 	Name     string  `json:"name"`

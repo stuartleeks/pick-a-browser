@@ -7,7 +7,7 @@ lint: build ## Build and lint
 	golangci-lint run
 	
 build: fmt ## build the exe
-	GOOS=windows go build
+	GOOS=windows go build -ldflags -H=windowsgui
 
 fmt: ## format code
 	find . -name '*.go' | grep -v vendor | xargs gofmt -s -w
