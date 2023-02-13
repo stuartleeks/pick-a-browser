@@ -19,6 +19,7 @@ func GetDefaultLinkShorteners() []string {
 		"aka.ms",
 		"t.co",
 		"go.microsoft.com",
+		"click.email.microsoftemail.com",
 	}
 }
 func GetDefaultLinkWrappers() []LinkWrapper {
@@ -33,6 +34,10 @@ func GetDefaultLinkWrappers() []LinkWrapper {
 		},
 		{
 			UrlPrefix:      "https://nam06.safelinks.protection.outlook.com/",
+			QueryStringKey: "url",
+		},
+		{
+			UrlPrefix:      "https://outlook.office.com/mail/safelink.html",
 			QueryStringKey: "url",
 		},
 	}
