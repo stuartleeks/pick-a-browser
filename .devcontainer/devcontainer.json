@@ -1,40 +1,42 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/go
 {
-	"name": "pick-a-browser",
+	"name": "Go",
+	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+	"image": "mcr.microsoft.com/devcontainers/go:0-1.19",
 	"build": {
-		"dockerfile": "Dockerfile",
-		"cacheFrom": "ghcr.io/stuartleeks/pick-a-browser-devcontainer:latest",
-		"args": {
-			// Update the VARIANT arg to pick a version of Go: 1, 1.16, 1.17
-			// Append -bullseye or -buster to pin to an OS version.
-			// Use -bullseye variants on local arm64/Apple Silicon.
-			"VARIANT": "1-bullseye",
-			// Options
-			"NODE_VERSION": "lts/*"
-		}
+		"cacheFrom": "ghcr.io/stuartleeks/pick-a-browser-devcontainer:latest"
 	},
-	"runArgs": [ "--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined" ],
-
-	// Set *default* container specific settings.json values on container create.
-	"settings": {
-		"go.toolsManagement.checkForUpdates": "local",
-		"go.useLanguageServer": true,
-		"go.gopath": "/go",
-		"go.goroot": "/usr/local/go"
+	"features": {
+		"ghcr.io/eitsupi/devcontainer-features/just": {}
 	},
-
-	// Add the IDs of extensions you want installed when the container is created.
-	"extensions": [
-		"golang.Go",
-		"stuartleeks.vscode-go-by-example",
-		"fcrespo82.markdown-table-formatter"
+	"containerEnv": {
+		"GOOS": "windows"
+	},
+	"runArgs": [
+		"--cap-add=SYS_PTRACE",
+		"--security-opt",
+		"seccomp=unconfined"
 	],
-
+	// Features to add to the dev container. More info: https://containers.dev/features.
+	// "features": {},
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
-
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "GOOS=linux go install github.com/kyoh86/richgo",
-
-	// Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
-	"remoteUser": "vscode"
+	// "postCreateCommand": "go version",
+	// Configure tool-specific properties.
+	// "customizations": {},
+	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+	// "remoteUser": "root"
+	"postCreateCommand": "echo -e '\nsource <(just --completions bash)\n' >> ~/.bashrc && GOOS=linux go get github.com/kyoh86/richgo",
+	"customizations": {
+		"vscode": {
+			// Add the IDs of extensions you want installed when the container is created.
+			"extensions": [
+				"golang.Go",
+				"stuartleeks.vscode-go-by-example",
+				"fcrespo82.markdown-table-formatter"
+			]
+		}
+	}
 }
