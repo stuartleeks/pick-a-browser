@@ -27,7 +27,7 @@ git tag -f v0.3.$BUILD_NUMBER
 
 export GOVERSION=$(go version)
 
-make lint
+just lint
 
 if [ -z ${PUBLISH} ]; then
   echo "Running with --skip-publish as PUBLISH not set"

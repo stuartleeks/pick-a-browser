@@ -7,6 +7,9 @@
 	"build": {
 		"cacheFrom": "ghcr.io/stuartleeks/pick-a-browser-devcontainer:latest"
 	},
+	"features": {
+		"ghcr.io/eitsupi/devcontainer-features/just": {}
+	},
 	"containerEnv": {
 		"GOOS": "windows"
 	},
@@ -25,7 +28,7 @@
 	// "customizations": {},
 	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
 	// "remoteUser": "root"
-	"postCreateCommand": "GOOS=linux go install github.com/kyoh86/richgo",
+	"postCreateCommand": "echo -e '\nsource <(just --completions bash)\n' >> ~/.bashrc && GOOS=linux go get github.com/kyoh86/richgo",
 	"customizations": {
 		"vscode": {
 			// Add the IDs of extensions you want installed when the container is created.
