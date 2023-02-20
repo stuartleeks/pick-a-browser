@@ -39,7 +39,7 @@ See [Configuration](#configuration) below.
 
 By default, `pick-a-browser` will look for `pick-a-browser-settings.json` in your user profile folder and then in the same folder as the app itself.
 
-If you which to put the settings in a different location, set the `PICK_A_BROWSER_CONFIG` environment variable to the full path to the settings file.
+If you wish to put the settings in a different location, set the `PICK_A_BROWSER_CONFIG` environment variable to the full path to the settings file.
 
 ### Updates
 
@@ -51,7 +51,7 @@ The `updates` property can take any of the following values:
 |--------------------|----------------------------------------------------------------------------------------------|
 | `none`             | `pick-a-browser` will not check for updates                                                  |
 | `prompt` (default) | `pick-a-browser` will check for updates and display an indicator when an update is available |
-| `auto`             | `pick-a-browser` will checkk for updates and automatically apply them in the background      |
+| `auto`             | `pick-a-browser` will check for updates and automatically apply them in the background       |
 
 
 ### Logging
