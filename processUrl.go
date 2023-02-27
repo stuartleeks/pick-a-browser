@@ -13,10 +13,12 @@ import (
 	"github.com/lxn/walk"
 	walkd "github.com/lxn/walk/declarative"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/stuartleeks/pick-a-browser/pkg/config"
 )
 
-func HandleUrl(urlString string, settings *config.Settings) error {
+func HandleUrl(logger *log.Entry, urlString string, settings *config.Settings) error {
 	urlDisplayString := "<not specified>"
 	if urlString != "" {
 		url, err := url.Parse(urlString)
@@ -31,12 +33,14 @@ func HandleUrl(urlString string, settings *config.Settings) error {
 			newUrl, _ := transformUrlWithWrappers(url, linkWrappers)
 			if newUrl != nil {
 				url = newUrl
+				logger.Debugf("unwrapped: url=%q", url)
 				continue
 			}
 
 			newUrl, _ = transformUrlWithShorteners(url, linkShorteners)
 			if newUrl != nil {
 				url = newUrl
+				logger.Debugf("unshortened: url=%q", url)
 				continue
 			}
 
@@ -46,7 +50,7 @@ func HandleUrl(urlString string, settings *config.Settings) error {
 		urlDisplayString = urlString
 
 		// match rules - launch browser and exit on match, or fall through to show list
-		matchedBrowserId := matchRules(settings.Rules, url)
+		matchedBrowserId := config.MatchRules(settings.Rules, url)
 
 		// if browser is set and browser != _prompt_, launch the browser
 		if matchedBrowserId != "_prompt_" && matchedBrowserId != "" {
@@ -199,20 +203,6 @@ func HandleUrl(urlString string, settings *config.Settings) error {
 type MyMainWindow struct {
 	*walk.MainWindow
 	urlLabel *walk.Label
-}
-
-// TODO move out of main and add tests
-func matchRules(rules []config.Rule, url *url.URL) string {
-	matchWeight := -1
-	browserId := ""
-	for _, rule := range rules {
-		tmpWeight := rule.Match(url)
-		if tmpWeight > matchWeight {
-			matchWeight = tmpWeight
-			browserId = rule.BrowserId()
-		}
-	}
-	return browserId
 }
 
 func transformUrlWithShorteners(url *url.URL, linkShorteners []string) (*url.URL, error) {
