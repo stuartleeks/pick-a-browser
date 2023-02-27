@@ -113,3 +113,16 @@ func parseRule(ruleNode map[string]interface{}) (Rule, error) {
 		return nil, fmt.Errorf("unsupported rule type %q", ruleType)
 	}
 }
+
+func MatchRules(rules []Rule, url *url.URL) string {
+	matchWeight := -1
+	browserId := ""
+	for _, rule := range rules {
+		tmpWeight := rule.Match(url)
+		if tmpWeight > matchWeight {
+			matchWeight = tmpWeight
+			browserId = rule.BrowserId()
+		}
+	}
+	return browserId
+}
