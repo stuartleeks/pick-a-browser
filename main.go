@@ -6,7 +6,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -101,21 +100,15 @@ func main() {
 		return
 	}
 
-	updated, err := PerformUpdateCheck(settings)
-	if err != nil {
-		logger.Errorln("UpdateCheck failed", err)
-		walk.MsgBox(nil, "pick-a-browser error...", fmt.Sprintf("Failed to update:\n%s", err), walk.MsgBoxOK|walk.MsgBoxIconError)
-	}
-	if updated {
-		// launch the updated exe with original args and exit
-		cmd := exec.Command(os.Args[0], args...)
-		logger.Infoln("Updated - re-launching...")
-		if err = cmd.Start(); err != nil {
-			logger.Errorln("Error re-launching after update", err)
-			walk.MsgBox(nil, "pick-a-browser error...", fmt.Sprintf("Failed to re-launch after update:\n%s", err), walk.MsgBoxOK|walk.MsgBoxIconError)
+	updateCheckCompleted := make(chan bool, 1)
+	go func() {
+		_, err := PerformUpdateCheck(settings, logger)
+		if err != nil {
+			logger.Errorln("UpdateCheck failed", err)
+			walk.MsgBox(nil, "pick-a-browser error...", fmt.Sprintf("Failed to update:\n%s", err), walk.MsgBoxOK|walk.MsgBoxIconError)
 		}
-		return
-	}
+		updateCheckCompleted <- true
+	}()
 
 	url := ""
 	if len(args) == 1 {
@@ -127,50 +120,63 @@ func main() {
 		logger.Errorln("HandleUrl failed", err)
 		walk.MsgBox(nil, "pick-a-browser error...", fmt.Sprintf("Error handling URL:\n%s", err), walk.MsgBoxOK|walk.MsgBoxIconError)
 	}
+
+	// ensure the update check is completed before exiting
+	<-updateCheckCompleted
 }
 
-func PerformUpdateCheck(settings *config.Settings) (bool, error) {
+func PerformUpdateCheck(settings *config.Settings, logger *log.Entry) (bool, error) {
 
 	state, err := appstate.Load()
 	if err != nil {
 		return false, err
 	}
 	if settings.UpdateCheck == config.UpdateCheckAuto || settings.UpdateCheck == config.UpdateCheckPrompt {
-		if time.Now().After(state.LastUpdateCheck.Add(updateCheckInterval)) {
-			latest, err := CheckForUpdate(version)
+		if time.Now().Before(state.LastUpdateCheck.Add(updateCheckInterval)) {
+			logger.Debugln("Skipping update check, within interval")
+			return false, nil // skip update check if within interval
+		}
+		logger.Debugln("Performing update check...")
+		latest, err := CheckForUpdate(version)
+		if err != nil {
+			logger.Errorln("Error checking for updates:", err)
+			return false, err
+		}
+		state.LastUpdateCheck = time.Now().UTC()
+		if err = appstate.Save(state); err != nil {
+			logger.Errorln("Error saving app state:", err)
+			return false, fmt.Errorf("error saving app state:\n%s", err)
+		}
+
+		if latest == nil {
+			logger.Debugln("No updates available")
+			return false, nil
+		}
+
+		// apply on auto
+		apply := settings.UpdateCheck == config.UpdateCheckAuto
+		if settings.UpdateCheck == config.UpdateCheckPrompt {
+			logger.Debugln("Asking user whether to update...")
+			result := walk.MsgBox(nil, "pick-a-browser update...", fmt.Sprintf("Version %s is available\n\n Update?", latest.Version), walk.MsgBoxYesNo|walk.MsgBoxIconQuestion)
+			apply = result == walk.DlgCmdYes
+		}
+
+		if apply {
+			logger.Infoln("Updating to version", latest.Version)
+			exe, err := os.Executable()
 			if err != nil {
-				return false, err
+				return false, fmt.Errorf("failed to locate executable:\n%s", err)
 			}
-			state.LastUpdateCheck = time.Now().UTC()
-			if err = appstate.Save(state); err != nil {
-				return false, fmt.Errorf("error checking for updates:\n%s", err)
-			}
-
-			if latest == nil {
-				return false, nil
+			if err := selfupdate.NoGitUpdater().UpdateTo(latest, exe); err != nil {
+				return false, fmt.Errorf("failed to perform update:\n%s", err)
 			}
 
-			// apply on auto
-			apply := settings.UpdateCheck == config.UpdateCheckAuto
-			if settings.UpdateCheck == config.UpdateCheckPrompt {
-				result := walk.MsgBox(nil, "pick-a-browser update...", fmt.Sprintf("Version %s is available\n\n Update?", latest.Version), walk.MsgBoxYesNo|walk.MsgBoxIconQuestion)
-				apply = result == walk.DlgCmdYes
-			}
-
-			if apply {
-				exe, err := os.Executable()
-				if err != nil {
-					return false, fmt.Errorf("failed to locate executable:\n%s", err)
-				}
-				if err := selfupdate.NoGitUpdater().UpdateTo(latest, exe); err != nil {
-					return false, fmt.Errorf("failed to perform update:\n%s", err)
-				}
-
-				walk.MsgBox(nil, "pick-a-browser...", fmt.Sprintf("Successfully updated to version %s", latest.Version), walk.MsgBoxOK)
-				return true, nil
-			}
+			logger.Infoln("Update applied successfully", latest.Version)
+			walk.MsgBox(nil, "pick-a-browser...", fmt.Sprintf("Successfully updated to version %s", latest.Version), walk.MsgBoxOK)
+			return true, nil
 		}
 	}
+	logger.Debugln("No updates applied")
 	return false, nil
 }
 
